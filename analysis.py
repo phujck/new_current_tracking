@@ -90,14 +90,14 @@ def FT_count(N):
 number=3
 number2=3
 nelec = (number, number)
-nx = 4
-nx2=4
+nx = 6
+nx2=6
 ny = 0
 t = 0.52
 t2=0.52
 U = 5*t
 U2= 5*t
-delta = 0.02
+delta = 0.05
 delta2=0.05
 cycles = 1
 cycles2=1
@@ -108,7 +108,7 @@ a=4
 
 Tracking=True
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
-prop_track=hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t+0.2, F0=F0, a=a, bc='pbc')
+prop_track=hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 # factor=prop.factor
 delta1=delta
 delta_track=prop_track.freq*delta/prop.freq
@@ -196,22 +196,22 @@ times=np.linspace(0,cycles/prop.freq,N_old)
 # plt.legend()
 # plt.show()
 
-#
-# D_grad=np.gradient(D,delta)
-# D_grad_track=np.gradient(D_track,delta_track)
-#
-# D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
 
-D_grad=D
-D_grad_track=D_track
+D_grad=np.gradient(D,delta)
 
 D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
+#
+# D_grad=D
+# D_grad_track=D_track
+#
+# D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
 
 
 
 plt.plot(t,D_grad, label='original')
 plt.plot(t,D_func(t), label='original')
 if Tracking:
+    D_grad_track = np.gradient(D_track, delta_track)
     plt.plot(t_track,D_grad_track,label='tracking')
 plt.xlabel('Time [cycles]')
 plt.ylabel('Double occupancy gradient')

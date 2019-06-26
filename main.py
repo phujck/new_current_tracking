@@ -241,13 +241,13 @@ D=[]
 
 number=3
 nelec = (number, number)
-nx = 4
+nx = 6
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
 U = 0.1*t
-delta = 0.02
+delta = 0.05
 cycles = 1
 # field= 32.9
 field=32.9
@@ -255,8 +255,6 @@ F0=10
 a=4
 
 
-U_track=U
-t_track=t
 parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude' % (nx,cycles,U,t,number,delta,field,F0)
 
 lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')

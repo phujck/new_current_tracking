@@ -31,13 +31,13 @@ D_track=[]
 
 number=3
 nelec = (number, number)
-nx = 4
+nx = 6
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1*t
-delta = 0.02
+U = 5*t
+delta = 0.05
 cycles = 1
 field= 32.9
 # field=25
@@ -51,13 +51,16 @@ lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t,
 time=cycles
 N_old = int(time/(lat.freq*delta))+1
 oldfreq=lat.freq
-# lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t+0.2, F0=F0, a=a, bc='pbc')
+times = np.linspace(0.0, cycles/lat.freq, len(J_field))
+# times = np.linspace(0.0, cycles, len(D))
+
+
+# lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=0, t=t, F0=F0, a=a, bc='pbc')
 print('\n')
 print(vars(lat))
 psi_temp = harmonic.hubbard(lat)[1].astype(complex)
 h= hub.create_1e_ham(lat,True)
-# times = np.linspace(0.0, cycles, len(J_field))
-times = np.linspace(0.0, cycles, len(D))
+
 N= int(cycles/(lat.freq*delta))+1
 
 J_func = interp1d(times, J_field, fill_value=0, bounds_error=False, kind='cubic')
@@ -112,13 +115,72 @@ D_func = interp1d(times, np.gradient(D,delta), fill_value=0, bounds_error=False,
 
 
 
+delta_track=delta
+prop=lat
+r = ode(evolve.integrate_f_track).set_integrator('zvode', method='bdf')
+
+# set which observable to track
+r.set_initial_value(psi_temp, 0).set_f_params(lat,h,J_func)
+# r.set_initial_value(psi_temp, 0).set_f_params(lat,h,D_func)
+
+branch = 0
+while r.successful() and r.t < time/lat.freq:
+    oldpsi=psi_temp
+    r.integrate(r.t + delta_track)
+    psi_temp = r.y
+    newtime = r.t
+    # add to expectations
+
+    harmonic.progress(N, int(newtime / delta_track))
+    neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
+    two_body.append(har_spec.two_body_old(lat, psi_temp))
+
+    # tracking current
+    phi_original.append(evolve.phi_J_track(lat,newtime,J_func,neighbour[-1],psi_temp))
+
+    # tracking D
+    # phi_original.append(evolve.phi_D_track(lat,newtime,D_func,two_body[-1],psi_temp))
+
+    J_field_track.append(har_spec.J_expectation_track(lat, h, psi_temp,phi_original[-1]))
+    D_track.append(observable.DHP(lat, psi_temp))
+
+    # diff = (psi_temp - oldpsi) / delta
+    # newerror = np.linalg.norm(diff + 1j * psierror)
+    # error.append(newerror)
+del phi_reconstruct[0:2]
+#
+
+# Cheating to try and track D
+
 # delta_track=delta
 # prop=lat
+# r = ode(evolve.integrate_f).set_integrator('zvode', method='bdf')
+# r.set_initial_value(psi_temp, 0).set_f_params(lat,time,h)
+# branch = 0
+# delta=delta
+# while r.successful() and r.t < 0.5*time/lat.freq:
+#     oldpsi=psi_temp
+#     r.integrate(r.t + delta)
+#     psi_temp = r.y
+#     newtime = r.t
+#     # add to expectations
+#
+#     # double occupancy fails for anything other than half filling.
+#     # D.append(evolve.DHP(prop,psi))
+#     harmonic.progress(N, int(newtime / delta))
+#     psierror=evolve.f(lat,evolve.ham1(lat,h,newtime,time),oldpsi)
+#     neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
+#     J_field_track.append(har_spec.J_expectation(lat, h, psi_temp, newtime, time))
+#     phi_original.append(har_spec.phi(lat,newtime,time))
+#     two_body.append(har_spec.two_body_old(lat, psi_temp))
+#     D_track.append(observable.DHP(lat, psi_temp))
+#
+#
 # r = ode(evolve.integrate_f_track).set_integrator('zvode', method='bdf')
 #
 # # set which observable to track
 # # r.set_initial_value(psi_temp, 0).set_f_params(lat,h,J_func)
-# r.set_initial_value(psi_temp, 0).set_f_params(lat,h,D_func)
+# r.set_initial_value(psi_temp, 0.5*time/lat.freq).set_f_params(lat,h,D_func)
 #
 # branch = 0
 # while r.successful() and r.t < time/lat.freq:
@@ -148,67 +210,6 @@ D_func = interp1d(times, np.gradient(D,delta), fill_value=0, bounds_error=False,
 #     # error.append(newerror)
 # del phi_reconstruct[0:2]
 #
-
-# Cheating to try and track D
-
-delta_track=delta
-prop=lat
-r = ode(evolve.integrate_f).set_integrator('zvode', method='bdf')
-r.set_initial_value(psi_temp, 0).set_f_params(lat,time,h)
-branch = 0
-delta=delta
-while r.successful() and r.t < 0.5*time/lat.freq:
-    oldpsi=psi_temp
-    r.integrate(r.t + delta)
-    psi_temp = r.y
-    newtime = r.t
-    # add to expectations
-
-    # double occupancy fails for anything other than half filling.
-    # D.append(evolve.DHP(prop,psi))
-    harmonic.progress(N, int(newtime / delta))
-    psierror=evolve.f(lat,evolve.ham1(lat,h,newtime,time),oldpsi)
-    neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
-    J_field_track.append(har_spec.J_expectation(lat, h, psi_temp, newtime, time))
-    phi_original.append(har_spec.phi(lat,newtime,time))
-    two_body.append(har_spec.two_body_old(lat, psi_temp))
-    D_track.append(observable.DHP(lat, psi_temp))
-
-
-r = ode(evolve.integrate_f_track).set_integrator('zvode', method='bdf')
-
-# set which observable to track
-# r.set_initial_value(psi_temp, 0).set_f_params(lat,h,J_func)
-r.set_initial_value(psi_temp, 0.5*time/lat.freq).set_f_params(lat,h,D_func)
-
-branch = 0
-while r.successful() and r.t < time/lat.freq:
-    oldpsi=psi_temp
-    r.integrate(r.t + delta_track)
-    psi_temp = r.y
-    newtime = r.t
-    # add to expectations
-
-    # double occupancy fails for anything other than half filling.
-    # D.append(evolve.DHP(prop,psi))
-    harmonic.progress(N, int(newtime / delta_track))
-    neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
-    two_body.append(har_spec.two_body_old(lat, psi_temp))
-
-    # tracking current
-    # phi_original.append(evolve.phi_J_track(lat,newtime,J_func,neighbour[-1],psi_temp))
-
-    # tracking D
-    phi_original.append(evolve.phi_D_track(lat,newtime,D_func,two_body[-1],psi_temp))
-
-    J_field_track.append(har_spec.J_expectation_track(lat, h, psi_temp,phi_original[-1]))
-    D_track.append(observable.DHP(lat, psi_temp))
-
-    # diff = (psi_temp - oldpsi) / delta
-    # newerror = np.linalg.norm(diff + 1j * psierror)
-    # error.append(newerror)
-del phi_reconstruct[0:2]
-
 np.save('./data/tracking/Jfield'+parameternames,J_field_track)
 np.save('./data/tracking/phi'+parameternames,phi_original)
 # np.save('./data/tracking/phirecon'+parameternames,phi_reconstruct)
