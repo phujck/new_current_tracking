@@ -13,6 +13,15 @@ def DHP(lat,psi):
     # return D/lat.nsites
     return D/lat.nsites
 
+def single_operator(lat, psi):
+    psi = np.reshape(psi, (fci.cistring.num_strings(lat.nsites, lat.nup), fci.cistring.num_strings(lat.nsites, lat.ndown)))
+    D = 0.
+    for j in [0, 1]:
+        for i in range(lat.nsites - 1):
+            D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [i], [1], [j])
+    return D
+
+
 def spin(lat,psi):
     eta = 0.
     for i in range(lat.nsites):

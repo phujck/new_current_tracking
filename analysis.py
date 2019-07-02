@@ -95,20 +95,24 @@ nx2=6
 ny = 0
 t = 0.52
 t2=0.52
-U = 5*t
-U2= 5*t
+U = 0.1*t
+U2= 0.1*t
 delta = 0.05
 delta2=0.05
-cycles = 1
-cycles2=1
+cycles = 10
+cycles2=5
 # field= 32.9
 field=32.9
 F0=10
 a=4
+scalefactor=1
 
 Tracking=True
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
-prop_track=hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
+prop2=hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
+print(prop.field)
+print(prop2.field)
+prop_track=hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=6*t, t=t, F0=F0, a=35*a, bc='pbc')
 # factor=prop.factor
 delta1=delta
 delta_track=prop_track.freq*delta/prop.freq
@@ -133,11 +137,13 @@ two_body2=np.load('./data/original/twobody'+parameternames2)
 neighbour2=np.load('./data/original/neighbour'+parameternames2)
 phi_original2=np.load('./data/original/phi'+parameternames2)
 error2=np.load('./data/original/error'+parameternames2)
+D2=np.load('./data/original/double'+parameternames2)
+
 
 if Tracking:
     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
     nx, cycles, U, t, number, delta, field, F0)
-    J_field_track = np.load('./data/tracking/Jfield' + parameternames)
+    J_field_track = np.load('./data/tracking/Jfield' + parameternames)/scalefactor
     phi_track = np.load('./data/tracking/phi' + parameternames)
     # phi_reconstruct = np.load('./data/tracking/phirecon' + parameternames)
     neighbour_track = np.load('./data/tracking/neighbour' + parameternames)
@@ -196,25 +202,23 @@ times=np.linspace(0,cycles/prop.freq,N_old)
 # plt.legend()
 # plt.show()
 
-
-D_grad=np.gradient(D,delta)
-
-D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
 #
-# D_grad=D
-# D_grad_track=D_track
+# D_grad=np.gradient(D,delta)
 #
 # D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
 
+D_grad=D
+D_grad_track=D_track
 
+D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
+# D_grad_track = np.gradient(D_track, delta_track)
 
 plt.plot(t,D_grad, label='original')
-plt.plot(t,D_func(t), label='original')
+# plt.plot(t,D_func(t), label='original')
 if Tracking:
-    D_grad_track = np.gradient(D_track, delta_track)
     plt.plot(t_track,D_grad_track,label='tracking')
 plt.xlabel('Time [cycles]')
-plt.ylabel('Double occupancy gradient')
+plt.ylabel('Double occupancy')
 plt.legend()
 plt.show()
 
@@ -370,11 +374,13 @@ if Tracking:
     diff_track = phi_track - np.angle(neighbour_track)
     J_grad_track = -2. * prop_track.a * prop_track.t * np.gradient(phi_track, delta_track) * np.abs(neighbour_track) * np.cos(diff_track)
     exact_track = np.gradient(J_field_track, delta_track)
+    print(max(exact)/max(exact_track))
     #
     #
     #
     # # eq 32 should have a minus sign on the second term, but
-    eq32_track = J_grad_track - prop_track.a * prop_track.t * prop_track.U * extra_track
+    eq32_track = (J_grad_track - prop_track.a * prop_track.t * prop_track.U * extra_track)/scalefactor
+    print(max(eq32)/max(eq32_track))
     # eq32= -prop.a * prop.t * prop.U * extra
     eq33_track = J_grad_track + 2. * prop_track.a * prop_track.t * (
                 np.gradient(np.angle(neighbour_track), delta_track) * np.abs(neighbour_track) * np.cos(diff_track) - np.gradient(
@@ -462,7 +468,7 @@ gabor='fL'
 spec = np.zeros((FT_count(len(J_field)), 2))
 if method=='welch':
     w, spec[:,0] = har_spec.spectrum_welch(exact, delta1)
-    w2, spec[:,1] = har_spec.spectrum_welch(exact2, delta2)
+    w2, spec[:,1] = har_spec.spectrum_welch(exact_track, delta_track)
 elif method=='hann':
     w, spec[:,0] = har_spec.spectrum_hanning(exact, delta1)
     w2, spec[:,0] = har_spec.spectrum_hanning(exact2, delta2)
@@ -473,6 +479,22 @@ else:
     print('Invalid spectrum method')
 #converts frequencies to harmonics
 w *= 2.*np.pi/prop.field
+
+# spec = np.log10(spec)
+# xlines = [2 * i - 1 for i in range(1, 15)]
+# for i, j in enumerate(U):
+#     plt.plot(w, spec[:, i], label='U/t= %.1f' % (j))
+#     axes = plt.gca()
+#     axes.set_xlim([0, max_harm])
+#     axes.set_ylim([-min_spec, spec.max()])
+# for xc in xlines:
+#     plt.axvline(x=xc, color='black', linestyle='dashed')
+#     plt.xlabel('Harmonic Order')
+#     plt.ylabel('HHG spectra')
+# plt.legend(loc='upper right')
+# plt.show()
+
+
 plot_spectra([2*U,int(2*U2)], w, spec, min_spec, max_harm)
 
 

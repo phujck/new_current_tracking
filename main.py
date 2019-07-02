@@ -238,6 +238,7 @@ two_body = []
 two_body_old=[]
 error=[]
 D=[]
+X=[]
 
 number=3
 nelec = (number, number)
@@ -248,7 +249,7 @@ t = 0.52
 # t=1
 U = 0.1*t
 delta = 0.05
-cycles = 1
+cycles = 2
 # field= 32.9
 field=32.9
 F0=10
@@ -316,6 +317,8 @@ while r.successful() and r.t < time/lat.freq:
     phi_original.append(har_spec.phi(lat,newtime,time))
     two_body.append(har_spec.two_body_old(lat, psi_temp))
     D.append(observable.DHP(lat, psi_temp))
+    X.append(observable.single_operator(lat, psi_temp))
+
 
     diff = (psi_temp - oldpsi) / delta
     newerror = np.linalg.norm(diff + 1j * psierror)
@@ -331,6 +334,8 @@ np.save('./data/original/neighbour'+parameternames,neighbour)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/error'+parameternames,error)
 np.save('./data/original/double'+parameternames,D)
+np.save('./data/original/position'+parameternames,X)
+
 
 
 #plot_observables(lat, delta=0.02, time=5., K=.1)
