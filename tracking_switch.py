@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.special as scispec
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 import evolve as evolve 
@@ -17,6 +18,8 @@ from scipy.interpolate import interp1d
 #input units: THz (field), eV (t, U), MV/cm (peak amplitude, F0), Angstroms (lattice cst, a)
 #they're then converted to t-normalised atomic units. bc='pbc' for periodic and 'abc' for antiperiodic
 
+def sigmoid(x,k,x0):
+    return 1/(1+np.exp(-k*(x-x0)))
 
 neighbour = []
 phi_original = []
@@ -43,25 +46,25 @@ field= 32.9
 # field=25
 F0=10
 a=4
-ascale=25
+ascale=1
 scalefactor=1
 parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (nx,cycles,U,t,number,delta,field,F0)
 newparameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (nx,cycles,U,t,number,delta,field,F0,ascale)
 
 # parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (4,cycles,U,t,2,delta,field,F0)
-J_field=np.load('./data/original/Jfield'+parameternames)
-D=np.load('./data/original/double'+parameternames)
+# J_field=np.load('./data/original/Jfield'+parameternames)
+# D=np.load('./data/original/double'+parameternames)
 
 lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 time=cycles
 N_old = int(time/(lat.freq*delta))+1
 oldfreq=lat.freq
-times = np.linspace(0.0, cycles/lat.freq, len(J_field))
+times = np.linspace(0.0, cycles/lat.freq, N_old)
 # times = np.linspace(0.0, cycles, len(D))
 
 
-lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=6*t, t=t, F0=F0, a=ascale*a, bc='pbc')
-times = np.linspace(0.0, cycles/lat.freq, len(J_field))
+# lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=6*t, t=t, F0=F0, a=ascale*a, bc='pbc')
+# times = np.linspace(0.0, cycles/lat.freq, len(J_field))
 # times = np.linspace(0.0, cycles, len(D))
 print('\n')
 print(vars(lat))
@@ -70,45 +73,11 @@ h= hub.create_1e_ham(lat,True)
 
 N= int(cycles/(lat.freq*delta))+1
 
+real_period=cycles/lat.freq
+switch_func= np.array([sigmoid(x,2,real_period/5)-sigmoid(x,2,real_period- real_period/5) for x in times])
+# switch_func= np.array([sigmoid(x,1,real_period/2) for x in times])
+J_field=switch_func
 J_func = interp1d(times, scalefactor*J_field, fill_value=0, bounds_error=False, kind='cubic')
-D_func = interp1d(times, np.gradient(D,delta/(lat.freq)), fill_value=0, bounds_error=False, kind='cubic')
-
-b=D_func(0)
-expec=har_spec.two_body_old(lat, psi_temp)
-print(expec.real)
-print(expec.imag)
-print(np.absolute(expec))
-print(b)
-print(evolve.phi_D_track(lat,3,D_func,expec,psi_temp))
-
-
-# for k in range(N):
-#     harmonic.progress(N, k)
-#     psi_old=psi_temp
-#     neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
-#     two_body.append(har_spec.two_body_old(lat, psi_temp))
-#     D_track.append(observable.DHP(lat, psi_temp))
-#
-#     # tracking current
-#     # phi_original.append(evolve.phi_J_track(lat,k*delta,J_func,neighbour[-1],psi_temp))
-#
-#     # tracking D
-#     phi_original.append(evolve.phi_D_track(lat,k*delta,D_func,two_body[-1],psi_temp))
-#
-#     J_field_track.append(har_spec.J_expectation_track(lat, h, psi_temp,phi_original[-1]))
-#
-#     # psierror=evolve.f(lat,evolve.ham_J_track(lat, h, k*delta, J_func,neighbour[-1], psi_old),psi_old)
-#     # psi_temp = evolve.RK4_J_track(lat, h, delta, k * delta,J_func,neighbour[-1], psi_temp)
-#
-#     psierror=evolve.f(lat,evolve.ham_D_track(lat, h, k*delta, D_func,two_body[-1], psi_old),psi_old)
-#     psi_temp = evolve.RK4_D_track(lat, h, delta, k * delta,D_func,two_body[-1], psi_temp)
-#
-#     diff = (psi_temp - psi_old) / delta
-#     newerror = np.linalg.norm(diff + 1j * psierror)
-#     error.append(newerror)
-#
-# #
-#
 
 
 
@@ -208,19 +177,11 @@ del phi_reconstruct[0:2]
 #     # error.append(newerror)
 # del phi_reconstruct[0:2]
 #
-np.save('./data/tracking/Jfield'+parameternames,J_field_track)
-np.save('./data/tracking/phi'+parameternames,phi_original)
-# np.save('./data/tracking/phirecon'+parameternames,phi_reconstruct)
-np.save('./data/tracking/neighbour'+parameternames,neighbour)
-np.save('./data/tracking/twobody'+parameternames,two_body)
-# np.save('./data/tracking/twobodyold'+parameternames,two_body_old)
-np.save('./data/tracking/double'+parameternames,D_track)
-np.save('./data/tracking/error'+parameternames,error)
-np.save('./data/tracking/double'+newparameternames,D_track)
-np.save('./data/tracking/Jfield'+newparameternames,J_field_track)
-np.save('./data/tracking/phi'+newparameternames,phi_original)
-np.save('./data/tracking/neighbour'+newparameternames,neighbour)
-np.save('./data/tracking/twobody'+newparameternames,two_body)
+np.save('./data/switch/switchfunc'+newparameternames,switch_func)
+np.save('./data/switch/Jfield'+newparameternames,J_field_track)
+np.save('./data/switch/phi'+newparameternames,phi_original)
+np.save('./data/switch/neighbour'+newparameternames,neighbour)
+np.save('./data/switch/twobody'+newparameternames,two_body)
 
 
 

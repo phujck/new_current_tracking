@@ -29,7 +29,7 @@ def f(lat, h1, psi):
     return pro
 
 
-def integrate_f( current_time,  psi, lat, cycles, h):
+def integrate_f(current_time,  psi, lat, cycles, h):
     ht = ham1(lat, h, current_time, cycles)
     return -1j * f(lat, ht, psi)
 
@@ -91,7 +91,10 @@ def phi_D_track(lat, current_time, D_reconstruct,two_body_expect, psi):
     #     current=self.J_reconstruct(0)
     # else:
     #     current = self.J_reconstruct(current_time-self.delta)
-    current = D_reconstruct(current_time)
+    current=0
+    # current = D_reconstruct(current_time)
+    # if np.abs(current) < 1e-5:
+    #     current =0
     # Arrange psi to calculate the nearest neighbour expectations
     D = -two_body_expect/lat.nsites
     angle = np.angle(D)
@@ -115,8 +118,12 @@ def ham_J_track(lat, h, current_time, J_reconstruct,neighbour, psi):
     return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
 
 
-def integrate_f_track(current_time,  psi, lat, h, J_reconstruct):
+def integrate_f_track_J(current_time,  psi, lat, h, J_reconstruct):
     ht = ham_J_track_ZVODE(current_time,psi,J_reconstruct,lat,h)
+    return -1j * f(lat, ht, psi)
+
+def integrate_f_track_D(current_time,  psi, lat, h, J_reconstruct):
+    ht = ham_D_track_ZVODE(current_time,psi,J_reconstruct,lat,h)
     return -1j * f(lat, ht, psi)
 
 def ham_J_track_ZVODE(current_time,psi, J_reconstruct, lat, h):
@@ -139,8 +146,18 @@ def ham_J_track_ZVODE(current_time,psi, J_reconstruct, lat, h):
 
 
 
-def ham_D_track(lat, h, current_time, J_reconstruct,neighbour, psi):
-    phi=phi_D_track(lat, current_time, J_reconstruct,neighbour, psi)
+def ham_D_track_ZVODE(current_time, psi, D_reconstruct,lat, h):
+    # current = D_reconstruct(current_time)
+    # if current_time < 0.2/lat.freq:
+    #     current = 0
+    current=0
+    # Arrange psi to calculate the nearest neighbour expectations
+    D = -harmonic.two_body_old (lat,psi)/ lat.nsites
+    angle = np.angle(D)
+    mag = np.abs(D)
+    scalefactor = 2 * lat.t * np.abs(D_reconstruct(0))
+    arg = -current / (2 * lat.t * mag)
+    phi = np.arcsin(arg + 0j) + angle
     h_forwards = np.triu(h)
     h_forwards[0, -1] = 0.0
     h_forwards[-1, 0] = h[-1, 0]

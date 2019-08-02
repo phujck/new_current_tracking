@@ -240,16 +240,16 @@ error=[]
 D=[]
 X=[]
 
-number=3
+number=6
 nelec = (number, number)
-nx = 6
+nx = 12
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1*t
+U = 6*t
 delta = 0.05
-cycles = 2
+cycles = 10
 # field= 32.9
 field=32.9
 F0=10
@@ -263,6 +263,7 @@ print('\n')
 print(vars(lat))
 time=cycles
 psi_temp = harmonic.hubbard(lat)[1].astype(complex)
+init=psi_temp
 h= hub.create_1e_ham(lat,True)
 N = int(time/(lat.freq*delta))+1
 print(N)
@@ -317,7 +318,7 @@ while r.successful() and r.t < time/lat.freq:
     phi_original.append(har_spec.phi(lat,newtime,time))
     two_body.append(har_spec.two_body_old(lat, psi_temp))
     D.append(observable.DHP(lat, psi_temp))
-    X.append(observable.single_operator(lat, psi_temp))
+    # X.append(observable.overlap(lat, psi_temp)[1])
 
 
     diff = (psi_temp - oldpsi) / delta
@@ -334,7 +335,7 @@ np.save('./data/original/neighbour'+parameternames,neighbour)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/error'+parameternames,error)
 np.save('./data/original/double'+parameternames,D)
-np.save('./data/original/position'+parameternames,X)
+# np.save('./data/original/position'+parameternames,X)
 
 
 
