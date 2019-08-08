@@ -50,6 +50,13 @@ def two_elec(lat, psi_r, psi_i):
     return pro.flatten()
 
 
+#
+# def two_elec(lat, psi_r, psi_i):
+#     pro =  fci.direct_uhf.contract_2e_hubbard((0, lat.U, 0), psi_r, lat.nsites, (lat.nup, lat.ndown)) \
+#           +  1.j * fci.direct_uhf.contract_2e_hubbard((0, lat.U, 0), psi_i, lat.nsites, (lat.nup, lat.ndown))
+#     return pro.flatten()
+
+
 def RK4(lat, h, delta, current_time, psi, cycles):
     ht = ham1(lat, h, current_time, cycles)
     k1 = -1.j * delta * f(lat, ht, psi)

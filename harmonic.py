@@ -77,7 +77,10 @@ def nearest_neighbour(lat, psi):
             D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
         # Assuming periodic conditions
         D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
-    return D
+    return D.conj()
+
+
+
 
 
 # calculates <c^*_jc_j+1> using the pyscf contraction
@@ -183,3 +186,59 @@ def two_body(lat, h, psi_r, psi_i):
     expectation2 = np.dot((psi_r+1j*psi_i).conj(), psi_new)
 
     return expectation1 - expectation2
+
+
+
+def one_energy(lat,psi, phi):
+    D=0
+    for j in [0, 1]:
+        for i in range(lat.nsites - 1):
+            D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
+        # Assuming periodic conditions
+        D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
+    one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))
+    return one_e
+#
+# def doublon_one_energy(lat,psi, phi):
+#     D=0
+#     for k in range(lat.nsites):
+#         for j in [0, 1]:
+#             for i in range(lat.nsites - 1):
+#                 D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [k,k,i, i + 1,k,k], [0,0,1,0,1,1], [1,0,j, j,0,1])
+#             # Assuming periodic conditions
+#             D += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
+#         one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))/lat.nsites
+#     return one_e
+
+def doublon_one_energy(lat,psi, phi):
+    D=0
+    for j in [0, 1]:
+        for i in range(lat.nsites - 1):
+            D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
+        # Assuming periodic conditions
+        D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
+    one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))
+    return one_e
+
+def two_energy(lat,psi):
+    two_e=0
+    for i in range(lat.nsites):
+        two_e += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i], [1, 0, 1, 0], [1, 1, 0, 0])
+        # Assuming periodic conditions
+    return lat.U*two_e
+
+#
+# def doublon_two_energy(lat,psi):
+#     two_e=0
+#     for k in range(lat.nsites):
+#         for i in range(lat.nsites):
+#             two_e += harmonic.compute_inner_product(psi, lat.nsites, (lat.nup, lat.ndown), [k,k,i, i, i, i,k,k], [0,0,1,0, 1, 0,1,1], [1,0,1, 1, 0, 0,0,1])
+#             # Assuming periodic conditions
+#         return lat.U*two_e
+
+def doublon_two_energy(lat,psi):
+    two_e=0
+    for i in range(lat.nsites):
+        two_e += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i], [1, 0, 1, 0], [1, 1, 0, 0])
+        # Assuming periodic conditions
+    return lat.U*two_e

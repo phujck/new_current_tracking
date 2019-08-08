@@ -229,6 +229,9 @@ def spectra(lat, initial=None, delta=0.01, time=5., method='welch', min_spec=7, 
 
 
 neighbour = []
+neighbour_check=[]
+energy=[]
+doublon_energy=[]
 phi_original = []
 J_field = []
 phi_reconstruct = [0., 0.]
@@ -240,14 +243,14 @@ error=[]
 D=[]
 X=[]
 
-number=6
+number=3
 nelec = (number, number)
-nx = 12
+nx = 6
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 6*t
+U = 0*t
 delta = 0.05
 cycles = 10
 # field= 32.9
@@ -314,10 +317,15 @@ while r.successful() and r.t < time/lat.freq:
     harmonic.progress(N, int(newtime / delta))
     psierror=evolve.f(lat,evolve.ham1(lat,h,newtime,time),oldpsi)
     neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
+    # neighbour_check.append(har_spec.nearest_neighbour(lat, psi_temp))
     J_field.append(har_spec.J_expectation(lat, h, psi_temp, newtime, time))
     phi_original.append(har_spec.phi(lat,newtime,time))
     two_body.append(har_spec.two_body_old(lat, psi_temp))
     D.append(observable.DHP(lat, psi_temp))
+    new_e=har_spec.one_energy(lat,psi_temp,phi_original[-1])+har_spec.two_energy(lat,psi_temp)
+    energy.append(new_e)
+    new_e_doublon=har_spec.doublon_one_energy(lat,psi_temp,phi_original[-1])+har_spec.doublon_two_energy(lat,psi_temp)
+    doublon_energy.append(new_e_doublon)
     # X.append(observable.overlap(lat, psi_temp)[1])
 
 
@@ -332,9 +340,14 @@ np.save('./data/original/phirecon'+parameternames,phi_reconstruct)
 # np.save('./data/original/boundary1'+parameternames,boundary_1)
 # np.save('./data/original/boundary2'+parameternames,boundary_2)
 np.save('./data/original/neighbour'+parameternames,neighbour)
+# np.save('./data/original/neighbour_check'+parameternames,neighbour_check)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/error'+parameternames,error)
 np.save('./data/original/double'+parameternames,D)
+np.save('./data/original/energy'+parameternames,energy)
+np.save('./data/original/doublonenergy'+parameternames,doublon_energy)
+
+
 # np.save('./data/original/position'+parameternames,X)
 
 

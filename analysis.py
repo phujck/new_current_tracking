@@ -93,8 +93,8 @@ def FT_count(N):
 # delta = 2
 # cycles = 10
 params = {
-   'axes.labelsize': 18,
-   'legend.fontsize': 15,
+   'axes.labelsize': 25,
+   'legend.fontsize': 20,
    'xtick.labelsize': 10,
    'ytick.labelsize': 10,
    'figure.figsize': [6, 6],
@@ -105,19 +105,19 @@ plt.rcParams.update(params)
 print(plt.rcParams.keys())
 # Load parameters and data. 2 suffix is for loading in a different simulation for comparison
 number = 3
-number2 = 5
+number2 = 3
 nelec = (number, number)
 nx = 6
-nx2 = 10
+nx2 = 6
 ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0.1* t
-U2 = 6* t
+U = 5* t
+U2 =6* t
 delta = 0.05
 delta2 = 0.05
-cycles = 10
+cycles = 3
 cycles2 = 10
 # field= 32.9
 field = 32.9
@@ -127,12 +127,12 @@ scalefactor = 1
 ascale =1
 
 Tracking = False
-Switch=True
+Switch=False
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
 print(prop.field)
 print(prop2.field)
-prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=ascale * a, bc='pbc')
+prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=0.1*t, t=t, F0=F0, a=ascale * a, bc='pbc')
 prop_switch = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a= a, bc='pbc')
 
 print(prop_track.a)
@@ -151,6 +151,10 @@ J_field = np.load('./data/original/Jfield' + parameternames)
 phi_original = np.load('./data/original/phi' + parameternames)
 phi_reconstruct = np.load('./data/original/phirecon' + parameternames)
 neighbour = np.load('./data/original/neighbour' + parameternames)
+# neighbour_check = np.load('./data/original/neighbour_check' + parameternames)
+energy = np.load('./data/original/energy' + parameternames)
+doublon_energy = np.load('./data/original/doublonenergy' + parameternames)
+# doublon_energy2 = np.load('./data/original/doublonenergy2' + parameternames)
 two_body = np.load('./data/original/twobody' + parameternames)
 # two_body_old=np.load('./data/original/twobodyold'+parameternames)
 D = np.load('./data/original/double' + parameternames)
@@ -338,6 +342,15 @@ plt.ylabel('$D(t)$')
 plt.xlabel('Time [cycles]')
 plt.legend()
 plt.show()
+
+# plt.plot(t, doublon_energy.real, label='$H(t)$')
+plt.plot(t, doublon_energy.real-energy.real, label='$H(t)$')
+# plt.plot(t, energy.real, label='$H(t) +\Delta$')
+plt.ylabel('$D(t)$')
+plt.xlabel('Time [cycles]')
+plt.legend()
+plt.show()
+
 
 
 plt.subplot(211)

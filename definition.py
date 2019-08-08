@@ -54,6 +54,40 @@ def compute_inner_product(civec, norbs, nelecs, ops, cres, alphas):
         nelecb -= 1
   return np.dot(civec.conj().flatten(), ciket.flatten())
 
+
+def compute_inner_product_doublon(civec, norbs, nelecs, ops, cres, alphas):
+    f=0
+    for k in range(norbs):
+        neleca, nelecb = nelecs
+        civec2=dc.cre_a(civec,norbs,(neleca,nelecb),k)
+        neleca+=1
+        civec2=dc.cre_b(civec2,norbs,(neleca,nelecb),k)
+        nelecb+=1
+        ciket = civec2.copy()
+        assert (len(ops) == len(cres))
+        assert (len(ops) == len(alphas))
+        for i in reversed(range(len(ops))):
+            if alphas[i]:
+                if cres[i]:
+                    ciket = dc.cre_a(ciket, norbs, (neleca, nelecb), ops[i])
+                    neleca += 1
+                else:
+                    if neleca == 0:
+                        return 0
+                    ciket = dc.des_a(ciket, norbs, (neleca, nelecb), ops[i])
+                    neleca -= 1
+            else:
+                if cres[i]:
+                    ciket = dc.cre_b(ciket, norbs, (neleca, nelecb), ops[i])
+                    nelecb += 1
+                else:
+                    if nelecb == 0:
+                        return 0
+                    ciket = dc.des_b(ciket, norbs, (neleca, nelecb), ops[i])
+                    nelecb -= 1
+        f+=np.dot(civec2.conj().flatten(), ciket.flatten())
+    return f/norbs
+
 #two-body part of hamiltonian
 def ham2(lat):
     h = np.zeros((lat.nsites,lat.nsites,lat.nsites,lat.nsites))

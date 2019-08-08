@@ -74,8 +74,8 @@ h= hub.create_1e_ham(lat,True)
 N= int(cycles/(lat.freq*delta))+1
 
 real_period=cycles/lat.freq
-switch_func= np.array([sigmoid(x,2,real_period/5)-sigmoid(x,2,real_period- real_period/5) for x in times])
-# switch_func= np.array([sigmoid(x,1,real_period/2) for x in times])
+switch_func= np.array([sigmoid(x,2,real_period/5)-sigmoid(x,2,real_period- real_period/5)*(1+0.000001*x) for x in times])
+# switch_func= np.array([0.5*sigmoid(x,1,real_period/2)*(1+0.00001*x) for x in times])
 J_field=switch_func
 J_func = interp1d(times, scalefactor*J_field, fill_value=0, bounds_error=False, kind='cubic')
 
