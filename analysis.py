@@ -113,11 +113,11 @@ ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 5* t
+U = 0* t
 U2 =6* t
 delta = 0.05
 delta2 = 0.05
-cycles = 3
+cycles = 10
 cycles2 = 10
 # field= 32.9
 field = 32.9
@@ -168,6 +168,8 @@ J_field2 = np.load('./data/original/Jfield' + parameternames2)
 two_body2 = np.load('./data/original/twobody' + parameternames2)
 neighbour2 = np.load('./data/original/neighbour' + parameternames2)
 phi_original2 = np.load('./data/original/phi' + parameternames2)
+energy2 = np.load('./data/original/energy' + parameternames2)
+doublon_energy2 = np.load('./data/original/doublonenergy' + parameternames2)
 error2 = np.load('./data/original/error' + parameternames2)
 D2 = np.load('./data/original/double' + parameternames2)
 
@@ -335,18 +337,18 @@ if Tracking:
 #     t_track = np.linspace(0.0, cycles, len(J_field_track))
 #     D_track = np.load('./data/tracking/double' + newparameternames)
 
+#
+# plt.plot(t, D, label='$L=6$')
+# plt.plot(t2, D2, label='$L=10$')
+# plt.ylabel('$D(t)$')
+# plt.xlabel('Time [cycles]')
+# plt.legend()
+# plt.show()
 
-plt.plot(t, D, label='$L=6$')
-plt.plot(t2, D2, label='$L=10$')
-plt.ylabel('$D(t)$')
-plt.xlabel('Time [cycles]')
-plt.legend()
-plt.show()
+plt.plot(t, doublon_energy.real-energy.real, label='$\\frac{U}{t_0}=0$')
+plt.plot(t, doublon_energy2.real-energy2.real, label='$\\frac{U}{t_0}=6$')
 
-# plt.plot(t, doublon_energy.real, label='$H(t)$')
-plt.plot(t, doublon_energy.real-energy.real, label='$H(t)$')
-# plt.plot(t, energy.real, label='$H(t) +\Delta$')
-plt.ylabel('$D(t)$')
+plt.ylabel('$\Delta(t)$')
 plt.xlabel('Time [cycles]')
 plt.legend()
 plt.show()

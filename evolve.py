@@ -29,6 +29,7 @@ def f(lat, h1, psi):
     return pro
 
 
+
 def integrate_f(current_time,  psi, lat, cycles, h):
     ht = ham1(lat, h, current_time, cycles)
     return -1j * f(lat, ht, psi)

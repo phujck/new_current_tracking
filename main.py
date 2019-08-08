@@ -6,8 +6,10 @@ import observable as observable
 import definition as harmonic 
 import hub_lats as hub
 import harmonic as har_spec
+import des_cre as dc
 from matplotlib import cm as cm
 from scipy.integrate import ode
+import des_cre as dc
 
 #NOTE: time is inputted and plotted in terms of cycles, but the actual propagation happens in 'normal' time
 
@@ -250,7 +252,7 @@ ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0*t
+U = 0.1*t
 delta = 0.05
 cycles = 10
 # field= 32.9
@@ -315,9 +317,13 @@ while r.successful() and r.t < time/lat.freq:
     # double occupancy fails for anything other than half filling.
     # D.append(evolve.DHP(prop,psi))
     harmonic.progress(N, int(newtime / delta))
-    psierror=evolve.f(lat,evolve.ham1(lat,h,newtime,time),oldpsi)
+    # psierror=evolve.f(lat,evolve.ham1(lat,h,newtime,time),oldpsi)
+    # diff = (psi_temp - oldpsi) / delta
+    # newerror = np.linalg.norm(diff + 1j * psierror)
+    # error.append(newerror)
     neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
     # neighbour_check.append(har_spec.nearest_neighbour(lat, psi_temp))
+    # X.append(observable.overlap(lat, psi_temp)[1])
     J_field.append(har_spec.J_expectation(lat, h, psi_temp, newtime, time))
     phi_original.append(har_spec.phi(lat,newtime,time))
     two_body.append(har_spec.two_body_old(lat, psi_temp))
@@ -326,26 +332,42 @@ while r.successful() and r.t < time/lat.freq:
     energy.append(new_e)
     new_e_doublon=har_spec.doublon_one_energy(lat,psi_temp,phi_original[-1])+har_spec.doublon_two_energy(lat,psi_temp)
     doublon_energy.append(new_e_doublon)
-    # X.append(observable.overlap(lat, psi_temp)[1])
+
+    # alternate way for calculating energy+ doublon added energy
+    # energy.append(np.dot(psi_temp.conj().flatten(), evolve.f(lat,evolve.ham1(lat,h,newtime,time),psi_temp).flatten()))
+    # for k in range(lat.nsites):
+    #     g=0
+    #     neleca, nelecb = lat.nup,lat.ndown
+    #     norbs=lat.nsites
+    #     civec=dc.cre_a(psi_temp,norbs,(neleca,nelecb),k)
+    #     lat.nup+=1
+    #     civec=dc.cre_b(civec,norbs,(neleca,nelecb),k)
+    #     lat.ndown+=1
+    #     lat.ne+=2
+    #     print(evolve.f(lat,evolve.ham1(lat,h,newtime,time),civec).flatten().shape())
+    #     g+=np.dot(civec.conj().flatten(), evolve.f(lat,evolve.ham1(lat,h,newtime,time),civec).flatten())
+    #     lat.nup = number
+    #     lat.ndown = number
+    #     lat.ne=2*number
+    # doublon_energy.append(g/lat.nsites)
+    #
 
 
-    diff = (psi_temp - oldpsi) / delta
-    newerror = np.linalg.norm(diff + 1j * psierror)
-    error.append(newerror)
+
+
+
 del phi_reconstruct[0:2]
 
 np.save('./data/original/Jfield'+parameternames,J_field)
 np.save('./data/original/phi'+parameternames,phi_original)
 np.save('./data/original/phirecon'+parameternames,phi_reconstruct)
-# np.save('./data/original/boundary1'+parameternames,boundary_1)
-# np.save('./data/original/boundary2'+parameternames,boundary_2)
 np.save('./data/original/neighbour'+parameternames,neighbour)
 # np.save('./data/original/neighbour_check'+parameternames,neighbour_check)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/error'+parameternames,error)
 np.save('./data/original/double'+parameternames,D)
-np.save('./data/original/energy'+parameternames,energy)
-np.save('./data/original/doublonenergy'+parameternames,doublon_energy)
+np.save('./data/original/energy2'+parameternames,energy)
+np.save('./data/original/doublonenergy2'+parameternames,doublon_energy)
 
 
 # np.save('./data/original/position'+parameternames,X)
