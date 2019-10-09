@@ -29,27 +29,27 @@ error=[]
 J_field_track=[]
 D_track=[]
 
-number=3
+number=5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1*t
+U = 0*t
 delta = 0.05
 cycles = 10
 field= 32.9
 # field=25
 F0=10
 a=4
-ascale=25
+ascale=2
 scalefactor=1
 parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (nx,cycles,U,t,number,delta,field,F0)
 newparameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (nx,cycles,U,t,number,delta,field,F0,ascale)
-
+Jscale=40
 # parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (4,cycles,U,t,2,delta,field,F0)
-J_field=np.load('./data/original/Jfield'+parameternames)
+J_field=np.load('./data/original/Jfield'+parameternames)/Jscale
 D=np.load('./data/original/double'+parameternames)
 
 lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
@@ -60,7 +60,7 @@ times = np.linspace(0.0, cycles/lat.freq, len(J_field))
 # times = np.linspace(0.0, cycles, len(D))
 
 
-lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=6*t, t=t, F0=F0, a=ascale*a, bc='pbc')
+lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=7*t, t=t, F0=F0, a=ascale*a, bc='pbc')
 times = np.linspace(0.0, cycles/lat.freq, len(J_field))
 # times = np.linspace(0.0, cycles, len(D))
 print('\n')
@@ -71,15 +71,15 @@ h= hub.create_1e_ham(lat,True)
 N= int(cycles/(lat.freq*delta))+1
 
 J_func = interp1d(times, scalefactor*J_field, fill_value=0, bounds_error=False, kind='cubic')
-D_func = interp1d(times, np.gradient(D,delta/(lat.freq)), fill_value=0, bounds_error=False, kind='cubic')
+# D_func = interp1d(times, np.gradient(D,delta/(lat.freq)), fill_value=0, bounds_error=False, kind='cubic')
 
-b=D_func(0)
-expec=har_spec.two_body_old(lat, psi_temp)
-print(expec.real)
-print(expec.imag)
-print(np.absolute(expec))
-print(b)
-print(evolve.phi_D_track(lat,3,D_func,expec,psi_temp))
+# b=D_func(0)
+# expec=har_spec.two_body_old(lat, psi_temp)
+# print(expec.real)
+# print(expec.imag)
+# print(np.absolute(expec))
+# print(b)
+# print(evolve.phi_D_track(lat,3,D_func,expec,psi_temp))
 
 
 # for k in range(N):

@@ -32,14 +32,14 @@ error=[]
 J_field_track=[]
 D_track=[]
 
-number=3
+number=5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1*t
+U =1.5*t
 delta = 0.05
 cycles = 10
 field= 32.9
@@ -74,7 +74,7 @@ h= hub.create_1e_ham(lat,True)
 N= int(cycles/(lat.freq*delta))+1
 
 real_period=cycles/lat.freq
-switch_func= np.array([sigmoid(x,2,real_period/5)-sigmoid(x,2,real_period- real_period/5)*(1+0.000001*x) for x in times])
+switch_func= np.array([0.25*sigmoid(x,2,real_period/5)-0.25*sigmoid(x,2,real_period- real_period/5) for x in times])
 # switch_func= np.array([0.5*sigmoid(x,1,real_period/2)*(1+0.00001*x) for x in times])
 J_field=switch_func
 J_func = interp1d(times, scalefactor*J_field, fill_value=0, bounds_error=False, kind='cubic')
@@ -100,7 +100,7 @@ while r.successful() and r.t < time/lat.freq:
 
     harmonic.progress(N, int(newtime / delta_track))
     neighbour.append(har_spec.nearest_neighbour_new(lat, h, psi_temp))
-    two_body.append(har_spec.two_body_old(lat, psi_temp))
+    # two_body.append(har_spec.two_body_old(lat, psi_temp))
 
     # tracking current
     phi_original.append(evolve.phi_J_track(lat,newtime,J_func,neighbour[-1],psi_temp))
@@ -109,7 +109,7 @@ while r.successful() and r.t < time/lat.freq:
     # phi_original.append(evolve.phi_D_track(lat,newtime,D_func,two_body[-1],psi_temp))
 
     J_field_track.append(har_spec.J_expectation_track(lat, h, psi_temp,phi_original[-1]))
-    D_track.append(observable.DHP(lat, psi_temp))
+    # D_track.append(observable.DHP(lat, psi_temp))
 
     # diff = (psi_temp - oldpsi) / delta
     # newerror = np.linalg.norm(diff + 1j * psierror)

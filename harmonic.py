@@ -189,6 +189,10 @@ def two_body(lat, h, psi_r, psi_i):
 
 
 
+# These expectations are used to compute the energy gap between the system and system + a doublon pair
+
+# one body energies
+
 def one_energy(lat,psi, phi):
     D=0
     for j in [0, 1]:
@@ -199,6 +203,10 @@ def one_energy(lat,psi, phi):
     one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))
     return one_e
 #
+
+
+# alternate method for calculating the one body energy by directly adding extra electrons to expectation.
+
 # def doublon_one_energy(lat,psi, phi):
 #     D=0
 #     for k in range(lat.nsites):
@@ -210,15 +218,33 @@ def one_energy(lat,psi, phi):
 #         one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))/lat.nsites
 #     return one_e
 
+
+# this method uses a compute inner product after adding two electrons to the wavefunction.
+
+# averaging over L^2:
+
+
 def doublon_one_energy(lat,psi, phi):
     D=0
     for j in [0, 1]:
         for i in range(lat.nsites - 1):
-            D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
+            D += harmonic.compute_inner_product_doublon_mix(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
         # Assuming periodic conditions
-        D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
+        D += harmonic.compute_inner_product_doublon_mix(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
     one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))
     return one_e
+
+# Averaging over L:
+# def doublon_one_energy(lat,psi, phi):
+#     D=0
+#     for j in [0, 1]:
+#         for i in range(lat.nsites - 1):
+#             D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0], [j, j])
+#         # Assuming periodic conditions
+#         D += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0], [1, 0], [j, j])
+#     one_e=-2*lat.t*np.real(D.conj()*np.exp(-1j*phi))
+#     return one_e
+
 
 def two_energy(lat,psi):
     two_e=0
@@ -227,7 +253,9 @@ def two_energy(lat,psi):
         # Assuming periodic conditions
     return lat.U*two_e
 
-#
+# ditto alternate two body energy
+
+
 # def doublon_two_energy(lat,psi):
 #     two_e=0
 #     for k in range(lat.nsites):
@@ -236,9 +264,36 @@ def two_energy(lat,psi):
 #             # Assuming periodic conditions
 #         return lat.U*two_e
 
+
+# this one for adding electrons averaged over L^2
 def doublon_two_energy(lat,psi):
     two_e=0
     for i in range(lat.nsites):
-        two_e += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i], [1, 0, 1, 0], [1, 1, 0, 0])
+        two_e += harmonic.compute_inner_product_doublon_mix(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i], [1, 0, 1, 0], [1, 1, 0, 0])
         # Assuming periodic conditions
     return lat.U*two_e
+
+# This one for averaging over doublon additions (i.e. over L)
+# def doublon_two_energy(lat,psi):
+#     two_e=0
+#     for i in range(lat.nsites):
+#         two_e += harmonic.compute_inner_product_doublon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i], [1, 0, 1, 0], [1, 1, 0, 0])
+#         # Assuming periodic conditions
+#     return lat.U*two_e
+
+
+def singlon_energy(lat,psi, phi):
+    two_e = 0
+    for i in range(lat.nsites):
+        two_e += harmonic.compute_inner_product_singlon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i, i, i],
+                                                            [1, 0, 1, 0], [1, 1, 0, 0])
+    D = 0
+    for j in [0, 1]:
+        for i in range(lat.nsites - 1):
+            D += harmonic.compute_inner_product_singlon(psi, lat.nsites, (lat.nup, lat.ndown), [i, i + 1], [1, 0],
+                                                            [j, j])
+        # Assuming periodic conditions
+        D += harmonic.compute_inner_product_singlon(psi, lat.nsites, (lat.nup, lat.ndown), [lat.nsites - 1, 0],
+                                                        [1, 0], [j, j])
+    one_e = -2 * lat.t * np.real(D.conj() * np.exp(-1j * phi))
+    return -2*lat.t*np.real(D.conj()*np.exp(-1j*phi))+ lat.U * two_e

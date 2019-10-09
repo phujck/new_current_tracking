@@ -244,6 +244,7 @@ two_body_old=[]
 error=[]
 D=[]
 X=[]
+singlon=[]
 
 number=3
 nelec = (number, number)
@@ -252,11 +253,11 @@ ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1*t
+U = 5*t
 delta = 0.05
-cycles = 10
+cycles = 5
 # field= 32.9
-field=32.9
+field=32.9*0.5
 F0=10
 a=4
 
@@ -328,12 +329,16 @@ while r.successful() and r.t < time/lat.freq:
     phi_original.append(har_spec.phi(lat,newtime,time))
     two_body.append(har_spec.two_body_old(lat, psi_temp))
     D.append(observable.DHP(lat, psi_temp))
-    new_e=har_spec.one_energy(lat,psi_temp,phi_original[-1])+har_spec.two_energy(lat,psi_temp)
-    energy.append(new_e)
-    new_e_doublon=har_spec.doublon_one_energy(lat,psi_temp,phi_original[-1])+har_spec.doublon_two_energy(lat,psi_temp)
-    doublon_energy.append(new_e_doublon)
+    # new_e=har_spec.one_energy(lat,psi_temp,phi_original[-1])+har_spec.two_energy(lat,psi_temp)
+    # energy.append(new_e)
+    # new_e_doublon=har_spec.doublon_one_energy(lat,psi_temp,phi_original[-1])+har_spec.doublon_two_energy(lat,psi_temp)
+    # doublon_energy.append(new_e_doublon)
+    # singlon.append(har_spec.singlon_energy(lat,psi_temp,phi_original[-1]))
+
 
     # alternate way for calculating energy+ doublon added energy
+
+
     # energy.append(np.dot(psi_temp.conj().flatten(), evolve.f(lat,evolve.ham1(lat,h,newtime,time),psi_temp).flatten()))
     # for k in range(lat.nsites):
     #     g=0
@@ -366,13 +371,15 @@ np.save('./data/original/neighbour'+parameternames,neighbour)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/error'+parameternames,error)
 np.save('./data/original/double'+parameternames,D)
-np.save('./data/original/energy2'+parameternames,energy)
-np.save('./data/original/doublonenergy2'+parameternames,doublon_energy)
+# np.save('./data/original/energy'+parameternames,energy)
+# np.save('./data/original/doublonenergy'+parameternames,doublon_energy)
+# np.save('./data/original/singlonenergy'+parameternames,singlon)
+
 
 
 # np.save('./data/original/position'+parameternames,X)
 
 
 
-#plot_observables(lat, delta=0.02, time=5., K=.1)
+# plot_observables(lat, delta=0.02, time=5., K=.1)
 # spectra(lat, initial=None, delta=delta, time=cycles, method='welch', min_spec=7, max_harm=50, gabor='fL')
