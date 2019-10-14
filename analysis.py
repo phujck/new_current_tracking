@@ -31,15 +31,17 @@ def FT(A):
     :return:
     """
     # test
+    # print(A.size)
     A = np.array(A)
     k = A.size
-    A = np.pad(A, (0, 4 * k), 'constant')
+    # A = np.pad(A, (0, 4 * k), 'constant')
     minus_one = (-1) ** np.arange(A.size)
     # result = np.fft.fft(minus_one * A)
-    result = np.fft.fft(minus_one * A, n=k)
-    minus_one = (-1) ** np.arange(result.size)
+    result = np.fft.fft(minus_one * A)
+    # minus_one = (-1) ** np.arange(result.size)
     result *= minus_one
     result *= np.exp(-1j * np.pi * A.size / 2)
+    # print(result.size)
     return result
 
 
@@ -66,7 +68,7 @@ def plot_spectra(U, w, spec, min_spec, max_harm):
     spec = np.log10(spec)
     xlines = [2 * i - 1 for i in range(1, 6)]
     for i, j in enumerate(U):
-        plt.plot(w, spec[:, i], label='U/t= %.1f' % (j))
+        plt.plot(w, spec[:, i], label='$\\frac{U}{t_0}=$ %.1f' % (j))
         axes = plt.gca()
         axes.set_xlim([0, max_harm])
         axes.set_ylim([-min_spec, spec.max()])
@@ -178,11 +180,12 @@ field2=32.9
 F0 = 10
 a = 4
 scalefactor = 1
-ascale = 1
+scalefactor2=1
+ascale = 65
 ascale2 = 1
 Jscale=1
 
-Tracking = False
+Tracking = True
 Switch = False
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
@@ -253,12 +256,12 @@ if Tracking:
     newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
         nx, cycles2, U2, t2, number2, delta2, field, F0, ascale2)
 
-    J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor
+    J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor2
     phi_track2 = np.load('./data/tracking/phi' + newparameternames2)
     # phi_reconstruct = np.load('./data/tracking/phirecon' + parameternames)
     neighbour_track2 = np.load('./data/tracking/neighbour' + newparameternames2)
     two_body_track2 = np.load('./data/tracking/twobody' + newparameternames2)
-    t_track2 = np.linspace(0.0, cycles, len(J_field_track))
+    t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
     D_track2 = np.load('./data/tracking/double' + newparameternames2)
 
 if Switch:
@@ -293,28 +296,28 @@ t2 = np.linspace(0.0, cycles, len(J_field2))
 darray = np.load('./data/original/doublonarray2.npy')
 breaktimes = np.load('./data/original/breaktimes.npy')
 #
-# print(darray.shape)
-# t_array = t2 = np.linspace(0.0, cycles, len(darray[0, :]))
-# breakline = []
-# cmap = plt.get_cmap('jet_r')
-# plt.plot(t_array,D)
-# for xx in range(0, 11):
-#     color = cmap((float(10 * xx) - 7) / 45)
-#     color2 = cmap((float(10 * (xx + 1)) - 7) / 45)
-#     if xx == 0 or xx == 10:
-#         plt.plot(t_array, darray[xx, :], color=color, label='$\\frac{U}{t_0}=$%s' % (xx))
-#     else:
-#         plt.plot(t_array, darray[xx, :], color=color)
-#     if xx < len(breaktimes):
-#         breakindex = int(breaktimes[xx] * len(darray[0, :]) / cycles)
-#         # plt.plot(breaktimes[xx], darray[xx+1,breakindex],color=color2, marker='o', markersize='10')
-#         plt.plot(breaktimes[xx], darray[xx + 1, breakindex], color='black', marker='o', markersize='10')
-#         breakline.append(darray[xx + 1, breakindex])
-# plt.plot(breaktimes[0], darray[1, int(breaktimes[0] * len(darray[0, :]) / cycles)], color='black', marker='o',
-#          markersize='10', label='$t_{th}$')
-# plt.plot(breaktimes, breakline, linestyle='dashed', color='black')
+print(darray.shape)
+t_array = t2 = np.linspace(0.0, cycles, len(darray[0, :]))
+breakline = []
+cmap = plt.get_cmap('jet_r')
+plt.plot(t_array,D)
+for xx in range(0, 11):
+    color = cmap((float(10 * xx) - 7) / 45)
+    color2 = cmap((float(10 * (xx + 1)) - 7) / 45)
+    if xx == 0 or xx == 10:
+        plt.plot(t_array, darray[xx, :], color=color, label='$\\frac{U}{t_0}=$%s' % (xx))
+    else:
+        plt.plot(t_array, darray[xx, :], color=color)
+    if xx < len(breaktimes):
+        breakindex = int(breaktimes[xx] * len(darray[0, :]) / cycles)
+        # plt.plot(breaktimes[xx], darray[xx+1,breakindex],color=color2, marker='o', markersize='10')
+        plt.plot(breaktimes[xx], darray[xx + 1, breakindex], color='black', marker='o', markersize='10')
+        breakline.append(darray[xx + 1, breakindex])
+plt.plot(breaktimes[0], darray[1, int(breaktimes[0] * len(darray[0, :]) / cycles)], color='black', marker='o',
+         markersize='10', label='$t_{th}$')
+plt.plot(breaktimes, breakline, linestyle='dashed', color='black')
 
-# plt.plot(t_array, darray[xx,:], color=color)
+plt.plot(t_array, darray[xx,:], color=color)
 
 plt.xlabel('Time [cycles]')
 plt.ylabel('$D(t)$')
@@ -334,10 +337,10 @@ if Tracking:
 # # D_grad_track = np.gradient(D_track, delta_track)
 
 #
-
+#
 plt.subplot(211)
 plt.plot(t, J_field, label='Original Current')
-plt.plot(t, J_field, linestyle='dashed',
+plt.plot(t_track*prop_track.freq/prop.freq, J_field_track, linestyle='dashed',
          label='Tracked Current')
 # plt.xlabel('Time [cycles]')
 plt.ylabel('$J(t)$')
@@ -346,7 +349,7 @@ plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.05), fontsize=20)
 
 plt.subplot(212)
 plt.plot(t2, J_field2, label='Original current')
-plt.plot(t2, J_field2, linestyle='dashed',
+plt.plot(t_track2, J_field_track2, linestyle='dashed',
          label='Tracked current')
 plt.xlabel('Time [cycles]')
 plt.ylabel('$J(t)$')
@@ -359,7 +362,7 @@ if Tracking:
     plt.plot(t, D_grad, label='tracked', linestyle='dashed')
     plt.plot(t, D_grad2, label='tracked', linestyle='dashed')
     plt.plot(t_track, D_grad_track, label='tracked', linestyle='dashed')
-    plt.plot(t_track, D_grad_track2, label='tracked', linestyle='dashed')
+    plt.plot(t_track2, D_grad_track2, label='tracked', linestyle='dashed')
 plt.ylabel('$D(t)$')
 # plt.annotate('a)', xy=(0.3,np.max(D_grad)-0.005),fontsize='16')
 
@@ -455,14 +458,15 @@ plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
            [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
 plt.show()
 #
-# plt.plot(t, np.abs(neighbour), label='original')
-# # plt.plot(t2, J_field2.real, label='swapped')
-# if Tracking:
-#     plt.plot(t_track, np.abs(neighbour_track), label='tracked', linestyle='dashed')
-# plt.legend()
-# plt.xlabel('Time [cycles]')
-# plt.ylabel('R(t)')
-# plt.show()
+plt.plot(t, np.real(neighbour), label='$\\frac{U}{t_0}=0$')
+plt.plot(t, np.abs(neighbour2), label='$\\frac{U}{t_0}=7$')
+# plt.plot(t2, J_field2.real, label='swapped')
+if Tracking:
+    plt.plot(t_track, np.abs(neighbour_track), label='tracked', linestyle='dashed')
+plt.legend()
+plt.xlabel('Time [cycles]')
+plt.ylabel('$R(t)$')
+plt.show()
 #
 # plt.plot(t, np.angle(neighbour), label='original')
 # # plt.plot(t2, J_field2.real, label='swapped')
@@ -739,13 +743,70 @@ elif method == 'none':
     w2, spec[:, 0] = har_spec.spectrum(exact2, delta2)
 else:
     print('Invalid spectrum method')
-w *= 2. * np.pi / prop.field
+
+"""Cutting the spectrum in order to evolve it"""
+if Tracking:
+    cutoff=10
+    cutoff2=cutoff
+    w *= 2. * np.pi / prop.field
+    phi_f1=FT(phi_track)
+    phi_f2=FT(phi_track2)
+    # phi_f1=np.fft.fftshift(np.fft.fft(phi_track))
+    # phi_f2=np.fft.fft(phi_track2)
+    w_phi1= np.fft.fftshift(np.fft.fftfreq(len(phi_track),delta))
+    w_phi1*= 2. * np.pi / prop_track.field
+
+    w_phi2= np.fft.fftshift(np.fft.fftfreq(len(phi_track2),delta))
+    w_phi2*= 2. * np.pi / prop_track2.field
+    plt.plot(w_phi1[2:-2], np.log10(phi_f1)[2:-2])
+    plt.plot(w_phi2[2:-2], np.log10(phi_f2)[2:-2])
+    plt.plot(np.log10(phi_f1))
+    plt.plot(np.log10(phi_f2))
+    # axes = plt.gca()
+    # axes.set_xlim([0, 30])
+    # plt.xlim([-1,60])
+    plt.show()
+
+    a=np.nonzero(w_phi1>-cutoff)[0]
+    b=np.nonzero(w_phi1<cutoff)[-1]
+    print(a)
+    print(b)
+    a2=np.nonzero(w_phi2>-cutoff2)[0]
+    b2=np.nonzero(w_phi2<cutoff2)[-1]
+    # plt.plot(w_phi1[a[0]:b[-1]],np.log10(phi_f1)[a[0]:b[-1]])
+    # plt.plot(w_phi2[a2[0]:b2[-1]],np.log10(phi_f2)[a2[0]:b2[-1]])
+    # plt.show()
+    phi_f1[b[-1]:]=0
+    phi_f1[:a[0]]=0
+    phi_f2[b2[-1]:]=0
+    phi_f2[:a2[0]]=0
+    cutphi_1=iFT((phi_f1))
+    cutphi_2=iFT((phi_f2))
+
+    plt.plot(w_phi1, np.log10(phi_f1))
+    plt.show()
+    plt.plot(w_phi2, np.log10(phi_f2))
+    plt.show()
+
+    plt.plot(t_track,cutphi_1)
+    plt.plot(t_track2,cutphi_2)
+    plt.show()
+
+cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+    nx, cycles, U, t, number, delta, field, F0, ascale,cutoff)
+cutparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+    nx2, cycles2, U2, t, number, delta, field, F0, ascale,cutoff)
+np.save('./data/cutfreqs/phi'+cutparameternames,cutphi_1)
+np.save('./data/cutfreqs/phi'+cutparameternames2,cutphi_2)
+
+
+
 plot_spectra([2 * U, int(2 * U2)], w, spec, min_spec, max_harm)
 
 if Tracking:
     plt.plot(t_array, darray[0, :], label='$D^{(0)}(t)$')
     plt.plot(t, D_grad2, label='$D^{(7)}(t)$')
-    plt.plot(t_track, D_grad_track2, label='$D_T^{(0)}(t)$', linestyle='dashed')
+    plt.plot(t_track2, D_grad_track2, label='$D_T^{(0)}(t)$', linestyle='dashed')
     plt.plot(t_track, D_grad_track, label='$D_T^{(7)}(t)$', linestyle='dashed')
     plt.ylabel('$D(t)$')
     plt.xlabel('Time [cycles]')
@@ -758,7 +819,8 @@ if Tracking:
         w, spec[:, 0] = har_spec.spectrum_welch(exact, delta1)
         w2, spec[:, 1] = har_spec.spectrum_welch(exact2, delta2)
         w3, spec[:, 2] = har_spec.spectrum_welch(exact_track2, delta_track2)
-        w4, spec[:, 3] = har_spec.spectrum_welch(exact_track, delta_track)
+        w3, spec[:, 3] = har_spec.spectrum_welch(exact_track, delta_track)
+        # w4, spec[:, 3] = har_spec.spectrum_welch(exact_track, delta_track)
     elif method == 'hann':
         w, spec[:, 0] = har_spec.spectrum_hanning(exact, delta1)
         w2, spec[:, 0] = har_spec.spectrum_hanning(exact2, delta2)

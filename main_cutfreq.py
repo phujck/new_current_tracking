@@ -1,9 +1,9 @@
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
-import evolve as evolve 
+import evolve as evolve
 import observable as observable
-import definition as harmonic 
+import definition as harmonic
 import hub_lats as hub
 import harmonic as har_spec
 from matplotlib import cm as cm
@@ -221,8 +221,3 @@ np.save('./data/tracking/Jfield'+newparameternames,J_field_track)
 np.save('./data/tracking/phi'+newparameternames,phi_original)
 np.save('./data/tracking/neighbour'+newparameternames,neighbour)
 np.save('./data/tracking/twobody'+newparameternames,two_body)
-
-
-
-#plot_observables(lat, delta=0.02, time=5., K=.1)
-# spectra(lat, initial=None, delta=delta, time=cycles, method='welch', min_spec=7, max_harm=50, gabor='fL')
