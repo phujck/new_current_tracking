@@ -37,30 +37,30 @@ t = 0.52
 # t=1.91
 # t=1
 U = 0*t
-delta = 0.05
+delta = 0.005
 cycles = 10
 field= 32.9
 # field=25
 F0=10
 a=4
-ascale=1
+ascale=5
 scalefactor=1
 parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (nx,cycles,U,t,number,delta,field,F0)
 newparameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (nx,cycles,U,t,number,delta,field,F0,ascale)
-Jscale=50
+Jscale=1
 # parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (4,cycles,U,t,2,delta,field,F0)
 J_field=np.load('./data/original/Jfield'+parameternames)/Jscale
 D=np.load('./data/original/double'+parameternames)
-
+# delta=0.01
 # lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
-# time=cycles
-# N_old = int(time/(lat.freq*delta))+1
+time=cycles
+# N_old = int(time/(lat.'freq*delta))+1
 # oldfreq=lat.freq
 # times = np.linspace(0.0, cycles/lat.freq, len(J_field))
 # times = np.linspace(0.0, cycles, len(D))
 
 
-lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=7*t, t=t, F0=F0, a=ascale*a, bc='pbc')
+lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=1*t, t=t, F0=F0, a=ascale*a, bc='pbc')
 times = np.linspace(0.0, cycles/lat.freq, len(J_field))
 # times = np.linspace(0.0, cycles, len(D))
 print('\n')

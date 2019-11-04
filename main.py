@@ -246,18 +246,18 @@ D=[]
 X=[]
 singlon=[]
 
-number=3
+number=5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 5*t
-delta = 0.05
-cycles = 5
-# field= 32.9
-field=32.9*0.5
+U = 0*t
+delta = 0.001
+cycles = 10
+field= 32.9
+# field=32.9*0.5
 F0=10
 a=4
 

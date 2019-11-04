@@ -93,6 +93,25 @@ def phi_J_track(lat, current_time, J_reconstruct,neighbour, psi):
     # phi = np.arcsin(arg + 0j)
     return phi.real
 
+def phi_reconstruct(lat, J_reconstruct,neighbour):
+    # Import the current function
+    # if current_time <self.delta:
+    #     current=self.J_reconstruct(0)
+    # else:
+    #     current = self.J_reconstruct(current_time-self.delta)
+    current = J_reconstruct
+    # Arrange psi to calculate the nearest neighbour expectations
+    D = neighbour
+    angle = np.angle(D)
+    mag = np.abs(D)
+    scalefactor = 2 * lat.a * lat.t * mag
+    # assert np.abs(current)/scalefactor <=1, ('Current too large to reproduce, ration is %s' % np.abs(current/scalefactor))
+    arg = -current / (2 * lat.a * lat.t * mag)
+    phi = np.arcsin(arg + 0j) + angle
+    # phi = np.arcsin(arg + 0j)
+    return phi.real
+
+
 def phi_D_track(lat, current_time, D_reconstruct,two_body_expect, psi):
     # Import the current function
     # if current_time <self.delta:
@@ -130,6 +149,10 @@ def integrate_f_track_J(current_time,  psi, lat, h, J_reconstruct):
     ht = ham_J_track_ZVODE(current_time,psi,J_reconstruct,lat,h)
     return -1j * f(lat, ht, psi)
 
+def integrate_f_cutfreqs(current_time,  psi, lat, h, phi_cut):
+    ht = ham_J_cutfreqs_ZVODE(current_time,phi_cut,h)
+    return -1j * f(lat, ht, psi)
+
 def integrate_f_track_D(current_time,  psi, lat, h, J_reconstruct):
     ht = ham_D_track_ZVODE(current_time,psi,J_reconstruct,lat,h)
     return -1j * f(lat, ht, psi)
@@ -144,6 +167,17 @@ def ham_J_track_ZVODE(current_time,psi, J_reconstruct, lat, h):
     # assert np.abs(current)/scalefactor <=1, ('Current too large to reproduce, ration is %s' % np.abs(current/scalefactor))
     arg = -current / (2 * lat.a * lat.t * mag)
     phi = np.arcsin(arg + 0j) + angle
+    h_forwards = np.triu(h)
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
+    h_backwards = np.tril(h)
+    h_backwards[-1, 0] = 0.0
+    h_backwards[0, -1] = h[0, -1]
+    return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
+
+
+def ham_J_cutfreqs_ZVODE(current_time, phi_cut, h):
+    phi = phi_cut(current_time)
     h_forwards = np.triu(h)
     h_forwards[0, -1] = 0.0
     h_forwards[-1, 0] = h[-1, 0]

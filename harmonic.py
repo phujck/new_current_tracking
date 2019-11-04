@@ -69,6 +69,29 @@ def J_expectation(lat,h,psi,current_time,cycles):
     # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
     return (np.dot(psi.conj(),fJ(lat,J,psi))).real
 
+def J_expectation_cutfreq(lat,h,psi, cut_phi):
+    J = current_cutfreq(lat,h, cut_phi)
+    # print('real part')
+    # print(J.real)
+    # print('imaginary part')
+    # print(J.imag)
+    # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
+    return (np.dot(psi.conj(),fJ(lat,J,psi))).real
+
+def current_cutfreq(lat,h,cut_phi):
+    if lat.field==0.:
+        phi = 0.
+    else:
+        phi = cut_phi
+    h_forwards = np.triu(h)
+    h_forwards[0,-1] = 0.0
+    h_forwards[-1,0] = h[-1,0]
+    h_backwards = np.tril(h)
+    h_backwards[-1,0] = 0.0
+    h_backwards[0,-1] = h[0,-1]
+    return 1.j*lat.a*(np.exp(-1.j*phi)*h_backwards - np.exp(1.j*phi)*h_forwards)
+
+
 def nearest_neighbour(lat, psi):
     psi = np.reshape(psi, (fci.cistring.num_strings(lat.nsites, lat.nup), fci.cistring.num_strings(lat.nsites, lat.ndown)))
     D = 0.
