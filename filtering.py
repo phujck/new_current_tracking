@@ -171,10 +171,10 @@ ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0 * t
-U2 = 0 * t
-delta = 0.005
-delta2 = 0.005
+U = 7 * t
+U2 = 7 * t
+delta = 0.05
+delta2 = 0.05
 cycles = 10
 cycles2 = 10
 # field= 32.9
@@ -184,8 +184,8 @@ F0 = 10
 a = 4
 scalefactor = 1
 scalefactor2 = 1
-ascale = 5
-ascale2 = 5
+ascale = 1.001
+ascale2 = 1
 Jscale = 1
 
 cutoff=100
@@ -385,55 +385,61 @@ plt.show()
 #
 #
 # """Getting Breakdown time for D"""
-# gaps = []
-# list = []
-# corrs = []
-# Ulist = []
-# freqlist=[]
-# for j in range(0,1):
-#     f=7
-#     list.append(1 * f)
-#     U = 1 * f * t
-#     lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=7*t, t=t, F0=F0, a=a, bc='pbc')
-#     Ulist.append(1*lat.U)
-#     freqlist.append(lat.field)
-#     # lat.U=f
-#     # gap_sum=nsum(lambda n: ((1+0.25*(n*lat.U)**2)**0.5 -0.5*n*lat.U)*((-1)**n), [1, inf])
-#     # print(gap_sum)
-#     # gap=(lat.U-4+8*gap_sum)
-#     # print(gap)
-#
-#     int = lambda x: np.log(x + (x ** 2 - 1) ** 0.5) / np.cosh(2 * np.pi * x / lat.U)
-#     corr_inverse = scipy.integrate.quad(int, 1, np.inf)[0]
-#     corrs.append(lat.U / (4 * corr_inverse))
-#
-#     chem_integrand = lambda x: scipy.special.jv(1, x) / (x * (1 + np.exp(x * lat.U / 2)))
-#     # chem_integrand= lambda x: scipy.special.jv(1,x)/x
-#     chem = scipy.integrate.quad(chem_integrand, 0, np.inf, limit=240)
-#
-#     gap = lat.U - 1* (2 - 4 * chem[0])
-#     gaps.append(gap)
-# plt.plot(freqlist)
-# plt.show()
-#
-# print(type(gaps))
-# print(type(corrs))
-# print(lat.a)
-# print(lat.F0)
-# print(lat.field)
-# breakdown = [a / (2*b *lat.field) for a, b in zip(gaps, corrs)]
-# print(breakdown)
-# print(newcutphi)
-# breaktimes = []
-# for a in breakdown:
-#     for j in range(0,len(times)):
-#         c=newcutphi.real[j]
-#         if abs(c) > a:
-#             breaktimes.append(j)
-#             break
-# print(times[j])
-# print(j)
-# # print(newcutphi[breaktimes])
+gaps = []
+list = []
+corrs = []
+Ulist = []
+freqlist=[]
+for j in range(0,1):
+    f=7
+    list.append(1 * f)
+    U = 1 * f * t
+    lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=7*t, t=t, F0=F0, a=a, bc='pbc')
+    Ulist.append(1*lat.U)
+    freqlist.append(lat.field)
+    # lat.U=f
+    # gap_sum=nsum(lambda n: ((1+0.25*(n*lat.U)**2)**0.5 -0.5*n*lat.U)*((-1)**n), [1, inf])
+    # print(gap_sum)
+    # gap=(lat.U-4+8*gap_sum)
+    # print(gap)
+
+    int = lambda x: np.log(x + (x ** 2 - 1) ** 0.5) / np.cosh(2 * np.pi * x / lat.U)
+    corr_inverse = scipy.integrate.quad(int, 1, np.inf)[0]
+    corrs.append(lat.U / (4 * corr_inverse))
+
+    # chem_integrand = lambda x: scipy.special.jv(1, x) / (x * (1 + np.exp(x * lat.U / 2)))
+    # # chem_integrand= lambda x: scipy.special.jv(1,x)/x
+    # chem = scipy.integrate.quad(chem_integrand, 0, np.inf, limit=240)
+    #
+    # gap = lat.U - 1* (2 - 4 * chem[0])
+    chem_alt=lambda x: (16/lat.U)*np.sqrt(x**2-1)/(np.sinh(2*np.pi*x/lat.U))
+    gap=scipy.integrate.quad(chem_alt, 1, np.inf, limit=240)[0]
+
+    # gap = lat.U - 2* (2 - 4 * chem[0])
+
+    gaps.append(gap)
+    gaps.append(gap)
+plt.plot(freqlist)
+plt.show()
+
+print(type(gaps))
+print(type(corrs))
+print(lat.a)
+print(lat.F0)
+print(lat.field)
+breakdown = [a / (2*b) for a, b in zip(gaps, corrs)]
+print(breakdown)
+print(newcutphi)
+breaktimes = []
+for a in breakdown:
+    for j in range(0,len(times)):
+        c=newcutphi.real[j]
+        if abs(c) > a:
+            breaktimes.append(j)
+            break
+print(times[j])
+print(j)
+# print(newcutphi[breaktimes])
 
 cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
     nx, cycles, U, t1, number, delta, field, F0, ascale,cutoff)

@@ -31,9 +31,10 @@ number = 5
 nelec = (number, number)
 nx = 10
 ny = 0
-t = 0.52
+t = 1
 field = 32.9
-F0 = 10
+F0 = 7.8
+# F0=10
 a = 4
 cycles = 10
 gaps = []
@@ -42,11 +43,11 @@ corrs = []
 Ulist = []
 freqlist=[]
 
-for f in range(1, 21):
-    list.append(1 * f)
-    U = 1 * f * t
+for f in range(1, 201):
+    list.append(0.1 * f)
+    U = 0.1 * f * t
     lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
-    Ulist.append(1*lat.U)
+    Ulist.append(0.1*lat.U)
     freqlist.append(lat.field)
     # lat.U=f
     # gap_sum=nsum(lambda n: ((1+0.25*(n*lat.U)**2)**0.5 -0.5*n*lat.U)*((-1)**n), [1, inf])
@@ -58,21 +59,38 @@ for f in range(1, 21):
     corr_inverse = scipy.integrate.quad(int, 1, np.inf)[0]
     corrs.append(lat.U / (4 * corr_inverse))
 
-    chem_integrand = lambda x: scipy.special.jv(1, x) / (x * (1 + np.exp(x * lat.U / 2)))
-    # chem_integrand= lambda x: scipy.special.jv(1,x)/x
-    chem = scipy.integrate.quad(chem_integrand, 0, np.inf, limit=240)
+    # chem_integrand = lambda x: scipy.special.jv(1, x) / (x * (1 + np.exp(x * lat.U / 2)))
+    # # chem_integrand= lambda x: scipy.special.jv(1,x)/x
+    # chem = scipy.integrate.quad(chem_integrand, 0, np.inf, limit=240)
 
-    gap = lat.U - 1* (2 - 4 * chem[0])
+    chem_alt=lambda x: (16/lat.U)*np.sqrt(x**2-1)/(np.sinh(2*np.pi*x/lat.U))
+    gap=scipy.integrate.quad(chem_alt, 1, np.inf, limit=240)[0]
+
+    # gap = lat.U - 2* (2 - 4 * chem[0])
+
     gaps.append(gap)
-plt.plot(freqlist)
-plt.show()
+params = {
+    'axes.labelsize': 30,
+    'legend.fontsize': 28,
+    'xtick.labelsize': 22,
+    'ytick.labelsize': 22,
+    'figure.figsize': [2*3.375, 2*3.375],
+    'text.usetex': True
+}
 
-print(type(gaps))
-print(type(corrs))
+plt.rcParams.update(params)
+fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+ax1.plot(list,gaps)
+ax2.plot(list,corrs)
+ax2.set_ylim([0,8])
+ax1.set_ylabel('$\\Delta$')
+ax2.set_ylabel('$\\xi$')
+plt.xlabel('$\\frac{U}{t_0}$')
+plt.show()
 print(lat.a)
 print(lat.F0)
 print(lat.field)
-breakdown = [a / (2*b *lat.field* lat.F0) for a, b in zip(gaps, corrs)]
+breakdown = [a / (2*b *lat.F0) for a, b in zip(gaps, corrs)]
 # x = [n for n, i in enumerate(breakdown) if i > 1][0]
 # print(float(x))
 
@@ -123,11 +141,11 @@ for a in breakdown:
         if abs(E_unit(lat, j, cycles)) > a:
             breaktimes.append(lat.freq*j)
             break
-plt.plot(breaktimes, Ulist[:len(breaktimes)])
+plt.plot(breaktimes, 10*np.array(Ulist[:len(breaktimes)]))
 plt.show()
 
 print(breaktimes)
 
-np.save('./data/original/breaktimes', breaktimes)  # print(Ulist)
+# np.save('./data/original/breaktimes', breaktimes)  # print(Ulist)
 # np.save('./data/original/breaktimes', breaktimes)  # print(Ulist)
 

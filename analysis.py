@@ -65,13 +65,13 @@ Track_Branch = False
 
 
 def plot_spectra(U, w, spec, min_spec, max_harm):
-    spec = np.log10(spec)
+    # spec = np.log10(spec)
     xlines = [2 * i - 1 for i in range(1, 6)]
     for i, j in enumerate(U):
-        plt.plot(w, spec[:, i], label='$\\frac{U}{t_0}=$ %.1f' % (j))
+        plt.semilogy(w, spec[:, i], label='$\\frac{U}{t_0}=$ %.1f' % (j))
         axes = plt.gca()
         axes.set_xlim([0, max_harm])
-        axes.set_ylim([-min_spec, spec.max()])
+        axes.set_ylim([10**(-15), spec.max()])
     for xc in xlines:
         plt.axvline(x=xc, color='black', linestyle='dashed')
         plt.xlabel('Harmonic Order')
@@ -97,18 +97,18 @@ def plot_spectra_switch(U, w, spec, min_spec, max_harm):
 
 
 def plot_spectra_track(U, w, spec, min_spec, max_harm):
-    spec = np.log10(spec)
+    # spec = np.log10(spec)
     xlines = [2 * i - 1 for i in range(1, 6)]
     for i, j in enumerate(U):
         print(i)
         print(i % 2)
         if i < 2:
-            plt.plot(w, spec[:, i], label='%s' % (j))
+            plt.semilogy(w, spec[:, i], label='%s' % (j))
         else:
-            plt.plot(w, spec[:, i], linestyle='dashed', label='%s' % (j))
+            plt.semilogy(w, spec[:, i], linestyle='dashed', label='%s' % (j))
         axes = plt.gca()
         axes.set_xlim([0, max_harm])
-        axes.set_ylim([-min_spec, spec.max()])
+        axes.set_ylim([10**(-min_spec), spec.max()])
     for xc in xlines:
         plt.axvline(x=xc, color='black', linestyle='dashed')
         plt.xlabel('Harmonic Order')
@@ -141,17 +141,18 @@ def FT_count(N):
 # These are Parameters I'm using
 # number=2
 # nelec = (number, number)
-# nx = 4
+# nx = 4®
 # ny = 0
 # t = 0.191
 # U = 0.1 * t
 # delta = 2
 # cycles = 10
 params = {
-    'axes.labelsize': 24,
-    'legend.fontsize': 28,
-    'xtick.labelsize': 20,
-    'ytick.labelsize': 20,
+    'axes.labelsize': 30,
+    # 'legend.fontsize': 28,
+    'legend.fontsize': 23,
+    'xtick.labelsize': 22,
+    'ytick.labelsize': 22,
     'figure.figsize': [2*3.375, 2*3.375],
     'text.usetex': True
 }
@@ -170,7 +171,7 @@ t1 = t
 t2 = 0.52
 U = 0 * t
 U2 = 7 * t
-delta = 0.005
+delta = 0.05
 delta2 = 0.05
 cycles = 10
 cycles2 = 10
@@ -360,26 +361,34 @@ if Tracking:
 # D_func = interp1d(t, D_grad, fill_value=0, bounds_error=False)
 # # D_grad_track = np.gradient(D_track, delta_track)
 
-#
-#
+fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+ax1.plot(t, J_field, label='$\\frac{U}{t_0}=0$')
+ax2.plot(t2, J_field2, label='$\\frac{U}{t_0}=7$')
+ax1.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+ax2.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+
+plt.xlabel('Time [cycles]')
+plt.show()
+
+
 plt.subplot(211)
-plt.plot(t, J_field, label='Original Current')
+plt.plot(t, J_field, label='$\\frac{U}{t_0}=0$')
 if Tracking:
     plt.plot(t_track* prop_track.freq / prop.freq, J_field_track, linestyle='dashed',
          label='Tracked Current')
 # plt.xlabel('Time [cycles]')
 plt.ylabel('$J(t)$')
-plt.legend()
-plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.05), fontsize=20)
+# plt.legend(loc='upper right')
+plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.08), fontsize=25)
 
 plt.subplot(212)
-plt.plot(t2, J_field2, label='Original current')
+plt.plot(t2, J_field2, label='\\frac{U}{t_0}=7')
 if Tracking:
     plt.plot(t_track2, J_field_track2, linestyle='dashed',
          label='Tracked current')
 plt.xlabel('Time [cycles]')
 plt.ylabel('$J(t)$')
-plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=20)
+plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=25)
 plt.show()
 
 plt.subplot(211)
@@ -425,27 +434,50 @@ if Switch:
     J_field_switch4 = J_field_switch4[:-cut]
     phi_switch4 = phi_switch4[:-cut]
 
-    plt.subplot(211)
-    plt.plot(t_switch, phi_switch.real)
-    plt.plot(t_switch, phi_switch2.real, linestyle=':')
-    plt.plot(t_switch, phi_switch3.real, linestyle='--')
-    plt.plot(t_switch, phi_switch4.real, linestyle='-.')
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    ax1.plot(t_switch, phi_switch.real)
+    ax1.plot(t_switch, phi_switch2.real, linestyle=':')
+    ax1.plot(t_switch, phi_switch3.real, linestyle='--')
+    ax1.plot(t_switch, phi_switch4.real, linestyle='-.')
 
     # plt.annotate('b)', xy=(0.3, np.max(J_field) - 0.05), fontsize='16')
-    plt.ylabel('$\Phi_T(t)$')
-
-    plt.subplot(212)
+    ax1.set_ylabel('$\Phi_T(t)$')
     # plt.plot(t_switch, switch_function.real, label='Switch Function')
-    plt.plot(t_switch, J_field_switch.real, label='$\\frac{U}{t_0}=0$')
-    plt.plot(t_switch, J_field_switch2.real, label='$\\frac{U}{t_0}=0.5$', linestyle=':')
-    plt.plot(t_switch, J_field_switch3.real, label='$\\frac{U}{t_0}=1$', linestyle='--')
-    plt.plot(t_switch, J_field_switch4.real, label='$\\frac{U}{t_0}=1.5$', linestyle='-.')
+    ax2.plot(t_switch, J_field_switch.real, label='$\\frac{U}{t_0}=0$')
+    # ax2.plot(t_switch, J_field_switch2.real, label='$\\frac{U}{t_0}=0.5$', linestyle=':')
+    # ax2.plot(t_switch, J_field_switch3.real, label='$\\frac{U}{t_0}=1$', linestyle='--')
+    ax2.plot(t_switch, J_field_switch2.real, linestyle=':')
+    ax2.plot(t_switch, J_field_switch3.real, linestyle='--')
+    ax2.plot(t_switch, J_field_switch4.real, label='$\\frac{U}{t_0}=1.5$', linestyle='-.')
 
     # plt.annotate('b)', xy=(0.3, np.max(J_field) - 0.05), fontsize='16')
-    plt.legend()
-    plt.ylabel('$J_T(t)$')
+    ax2.set_ylabel('$J_T(t)$')
     plt.xlabel('Time [cycles]')
+    ax2.legend(loc='upper right')
+    plt.xlabel('Time [cycles]')
+
     plt.show()
+    # plt.subplot(211)
+    # plt.plot(t_switch, phi_switch.real)
+    # plt.plot(t_switch, phi_switch2.real, linestyle=':')
+    # plt.plot(t_switch, phi_switch3.real, linestyle='--')
+    # plt.plot(t_switch, phi_switch4.real, linestyle='-.')
+    #
+    # # plt.annotate('b)', xy=(0.3, np.max(J_field) - 0.05), fontsize='16')
+    # plt.ylabel('$\Phi_T(t)$')
+    #
+    # plt.subplot(212)
+    # # plt.plot(t_switch, switch_function.real, label='Switch Function')
+    # plt.plot(t_switch, J_field_switch.real, label='$\\frac{U}{t_0}=0$')
+    # plt.plot(t_switch, J_field_switch2.real, label='$\\frac{U}{t_0}=0.5$', linestyle=':')
+    # plt.plot(t_switch, J_field_switch3.real, label='$\\frac{U}{t_0}=1$', linestyle='--')
+    # plt.plot(t_switch, J_field_switch4.real, label='$\\frac{U}{t_0}=1.5$', linestyle='-.')
+    #
+    # # plt.annotate('b)', xy=(0.3, np.max(J_field) - 0.05), fontsize='16')
+    # plt.legend()
+    # plt.ylabel('$J_T(t)$')
+    # plt.xlabel('Time [cycles]')
+    # plt.show()
 
     two_body_switch = np.array(two_body_switch)
     extra_switch = 2. * np.real(np.exp(-1j * phi_switch) * two_body_switch)
@@ -468,104 +500,105 @@ if Switch:
     plt.legend()
     plt.show()
 #
-
-"""Phi and theta plots"""
-plt.plot(t, phi_original.real, label='original')
-# plt.plot(t2, J_field2.real, label='swapped')
-if Tracking:
-    # plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
-    plt.plot(t_track, phi_track.real, label='tracked', linestyle='dashed')
-
+#
+# """Phi and theta plots"""
+# plt.plot(t, phi_original.real, label='original')
+# # plt.plot(t2, J_field2.real, label='swapped')
+# if Tracking:
+#     # plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
+#     plt.plot(t_track, phi_track.real, label='tracked', linestyle='dashed')
+#
+# # plt.legend()
+# plt.xlabel('Time [cycles]')
+# plt.ylabel('$\\Phi(t)$')
+# plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
+#            [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
+# plt.show()
+# if Tracking:
+#     phi_track_shift = np.copy(phi_track)
+#     for j in range(1, int(len(phi_track_shift))):
+#         k = phi_track_shift[j] - phi_track_shift[j - 1]
+#         if k > 1.8 * np.pi:
+#             phi_track_shift[j:] = phi_track_shift[j:] - 2 * np.pi
+#         if k < -1.8* np.pi:
+#             phi_track_shift[j:] = phi_track_shift[j:] + 2 * np.pi
+#     plt.plot(t_track, phi_track_shift.real+2*np.pi, label='shifted phi')
+#     plt.plot(t_track,np.zeros(len(t_track)))
+#     print(np.sum(phi_track_shift.real)*delta_track+delta_track*len(phi_track_shift)*2.105*np.pi)
+#     print(np.sum(phi_track.real)*delta_track)
+#     print(np.sum(phi_track2))
+#     print(np.sum(phi_original)*delta_track)
+#     # plt.legend()
+#     plt.xlabel('Time [cycles]')
+#     plt.ylabel('$\\Phi(t)$')
+#     plt.yticks(np.arange(-3 * np.pi, 3 * np.pi, 0.5 * np.pi),
+#            [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-3 * np.pi, 3 * np.pi, .5 * np.pi)])
+#     plt.show()
+#
+#     plt.plot(t_track,np.angle(neighbour_track), label='tracked', linestyle='dashed')
+#
+#     # plt.legend()
+#     plt.xlabel('Time [cycles]')
+#     plt.ylabel('$\\theta(t)$')
+#     plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
+#                [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
+#     plt.show()
+#
+#     plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
+#
+#     # plt.legend()
+#     plt.xlabel('Time [cycles]')
+#     plt.ylabel('$\\Phi(t)-\\theta(t)$')
+#     plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
+#                [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
+#     plt.show()
+#
+# plt.plot(t2, phi_original2.real, label='original')
+# # plt.plot(t2, J_field2.real, label='swapped')
+#
+# if Tracking:
+#     # plt.plot(t_track, phi_track2.real-np.angle(neighbour_track2), label='tracked', linestyle='dashed')
+#     plt.plot(t_track2, phi_track2, label='tracked', linestyle='dashed')
+# # plt.legend()
+# plt.xlabel('Time [cycles]')
+# plt.ylabel('$\\Phi(t)$')
+# plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
+#            [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
+# plt.show()
+#
+# if Tracking:
+#     plt.plot(t_track2,np.angle(neighbour_track2), label='tracked', linestyle='dashed')
+#
+#     # plt.legend()
+#     plt.xlabel('Time [cycles]')
+#     plt.ylabel('$\\theta(t)$')
+#     plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
+#                [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
+#     plt.show()
+#
+#     plt.plot(t_track2, phi_track2.real-np.angle(neighbour_track2), label='tracked', linestyle='dashed')
+#
+#     plt.show()
+#
+#
+# # plt.plot(t2, J_field2.real, label='swapped')
+# if Tracking:
+#     plt.plot(t_track, np.abs(neighbour_track), label='tracked', linestyle='dashed')
 # plt.legend()
-plt.xlabel('Time [cycles]')
-plt.ylabel('$\\Phi(t)$')
-plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
-           [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
-plt.show()
-if Tracking:
-    phi_track_shift = np.copy(phi_track)
-    for j in range(1, int(len(phi_track_shift))):
-        k = phi_track_shift[j] - phi_track_shift[j - 1]
-        if k > 1.8 * np.pi:
-            phi_track_shift[j:] = phi_track_shift[j:] - 2 * np.pi
-        if k < -1.8* np.pi:
-            phi_track_shift[j:] = phi_track_shift[j:] + 2 * np.pi
-    plt.plot(t_track, phi_track_shift.real+2*np.pi, label='shifted phi')
-    plt.plot(t_track,np.zeros(len(t_track)))
-    print(np.sum(phi_track_shift.real)*delta_track+delta_track*len(phi_track_shift)*2.105*np.pi)
-    print(np.sum(phi_track.real)*delta_track)
-    print(np.sum(phi_track2))
-    print(np.sum(phi_original)*delta_track)
-    # plt.legend()
-    plt.xlabel('Time [cycles]')
-    plt.ylabel('$\\Phi(t)$')
-    plt.yticks(np.arange(-3 * np.pi, 3 * np.pi, 0.5 * np.pi),
-           [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-3 * np.pi, 3 * np.pi, .5 * np.pi)])
-    plt.show()
-
-    plt.plot(t_track,np.angle(neighbour_track), label='tracked', linestyle='dashed')
-
-    # plt.legend()
-    plt.xlabel('Time [cycles]')
-    plt.ylabel('$\\theta(t)$')
-    plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
-               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
-    plt.show()
-
-    plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
-
-    # plt.legend()
-    plt.xlabel('Time [cycles]')
-    plt.ylabel('$\\Phi(t)-\\theta(t)$')
-    plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
-               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
-    plt.show()
-
-plt.plot(t2, phi_original2.real, label='original')
-# plt.plot(t2, J_field2.real, label='swapped')
-
-if Tracking:
-    # plt.plot(t_track, phi_track2.real-np.angle(neighbour_track2), label='tracked', linestyle='dashed')
-    plt.plot(t_track2, phi_track2, label='tracked', linestyle='dashed')
-# plt.legend()
-plt.xlabel('Time [cycles]')
-plt.ylabel('$\\Phi(t)$')
-plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
-           [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
-plt.show()
-
-if Tracking:
-    plt.plot(t_track2,np.angle(neighbour_track2), label='tracked', linestyle='dashed')
-
-    # plt.legend()
-    plt.xlabel('Time [cycles]')
-    plt.ylabel('$\\theta(t)$')
-    plt.yticks(np.arange(-1 * np.pi, 1 * np.pi, 0.5 * np.pi),
-               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1 * np.pi, .5 * np.pi)])
-    plt.show()
-
-    plt.plot(t_track2, phi_track2.real-np.angle(neighbour_track2), label='tracked', linestyle='dashed')
-
-    plt.show()
-
-
-# plt.plot(t2, J_field2.real, label='swapped')
-if Tracking:
-    plt.plot(t_track, np.abs(neighbour_track), label='tracked', linestyle='dashed')
-plt.legend()
-plt.xlabel('Time [cycles]')
-plt.ylabel('$R(t)$')
-plt.show()
-
+# plt.xlabel('Time [cycles]')
+# plt.ylabel('$R(t)$')
+# plt.show()
+#
 if Tracking:
     # plt.plot(t_track,0.25*(phi_track_shift+2*np.pi*np.ones(len(t_track))))
     # plt.plot(t_track2,10*phi_track2)
     # plt.plot(t,phi_original)
     # plt.plot(t,J_field, color='red')
-    plt.plot(t2,10*J_field2,color='red')
+    # plt.plot(t2,10*J_field2,color='red')
+    plt.plot(t_track,0.25*phi_track,color='red')
     plt.axis('off')
     plt.show()
-#
+# #
 two_body = np.array(two_body)
 extra = 2. * np.real(np.exp(-1j * phi_original) * two_body)
 diff = phi_original - np.angle(neighbour)
@@ -617,6 +650,23 @@ plt.xlabel('Time [cycles]')
 plt.ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
 plt.annotate('b)', xy=(0.3, np.max(exact) - 0.1), fontsize='25')
 plt.show()
+
+fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+ax1.plot(t, exact, label='Numerical gradient')
+ax1.plot(t, eq32, linestyle='dashed',
+         label='Analytical gradient')
+# plt.xlabel('Time [cycles]')
+ax1.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+ax1.annotate('a)', xy=(0.3, np.max(exact) - 0.2), fontsize='28')
+
+ax2.plot(t2, exact2, label='Numerical gradient')
+ax2.plot(t2, eq32_2, linestyle='dashed',  label='Analytical gradient')
+plt.xlabel('Time [cycles]')
+ax2.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+ax2.annotate('b)', xy=(0.3, np.max(exact) - 0.1), fontsize='28')
+plt.legend(loc='lower left')
+plt.show()
+
 
 if Tracking:
     phi_track_shift = np.copy(phi_track)
@@ -688,16 +738,58 @@ if Tracking:
     plt.subplot(312)
     plt.plot(t, np.abs(neighbour), label='original')
     plt.plot(t_track, np.abs(neighbour_track), linestyle='dashed')
-    plt.ylabel('$R(t)$')
+    plt.ylabel('$R(\psi)$')
 
     plt.subplot(313)
     plt.plot(t, np.abs(two_body), label='original')
     plt.plot(t_track, np.abs(two_body_track), linestyle='dashed')
-    plt.ylabel('$C(t)$')
+    plt.ylabel('$C(\psi)$')
     plt.xlabel('Time [cycles]')
 
     plt.show()
 
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, sharex=True)
+    ax1.plot(t_track, exact_track,
+          label='Original')
+    # ax1.plot(t_track[:-2], eq33_track[:-2], linestyle='dashed',   label='Tracking')
+    ax1.plot(t_track[:-2], eq32_track[:-2], linestyle='dashed',
+             label='Tracking')
+    ax1.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+    ax1.legend(loc='upper right')
+
+    ax2.plot(t, np.abs(neighbour), label='original')
+    ax2.plot(t_track, np.abs(neighbour_track), linestyle='dashed')
+    ax2.set_ylabel('$R(\psi)$')
+
+    ax3.plot(t, np.abs(two_body), label='original')
+    ax3.plot(t_track, np.abs(two_body_track), linestyle='dashed')
+    ax3.set_ylabel('$C(\psi)$')
+
+    plt.xlabel('Time [cycles]')
+
+    plt.show()
+
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    ax1.plot(t_track, exact_track)
+    # ax1.plot(t_track[:-2], eq33_track[:-2], linestyle='dashed',   label='Tracking')
+    ax1.plot(t_track[:-2], eq32_track[:-2], linestyle='dashed',
+             label='$\\Delta=10^{-2}$')
+    ax1.set_ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
+    ax1.legend(loc='upper right')
+
+    J_field_track = np.load('./data/tracking/Jfield' + newparameternames) * Jscale / scalefactor
+
+
+
+    ax2.plot(t, np.angle(neighbour), label='original')
+    ax2.plot(t_track, np.abs(neighbour_track), linestyle='dashed')
+    ax2.set_ylabel('$R(\psi)$')
+
+
+    plt.xlabel('Time [cycles]')
+
+    plt.show()
 
 # w1, spec1 = har_spec.spectrum_welch(exact, delta1)
 # w2, spec2 = har_spec.spectrum_welch(exact2, delta2)
@@ -792,16 +884,20 @@ plot_spectra([0, 7], w, spec, min_spec, max_harm)
 
 
 if Tracking:
-    plt.plot(t_array, darray[0, :], label='$D^{(0)}(t)$')
-    plt.plot(t2, D_grad2, label='$D^{(7)}(t)$')
-    plt.plot(t_track2, D_grad_track2, label='$D_T^{(0)}(t)$', linestyle='dashed')
-    plt.plot(t_track, D_grad_track, label='$D_T^{(7)}(t)$', linestyle='dashed')
-    plt.plot(t_track[1390], D_grad_track[1390], linestyle='none', color='black',
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+    ax1.plot(t_array, darray[0, :], label='$D^{(0)}(t)$')
+    ax2.plot(t2, D_grad2, label='$D^{(7)}(t)$')
+    ax1.plot(t_track2, D_grad_track2, label='$D_T^{(0)}(t)$', linestyle='dashed')
+    ax2.plot(t_track, D_grad_track, label='$D_T^{(7)}(t)$', linestyle='dashed')
+    # ax2.plot(t_track[1390], D_grad_track[1390], linestyle='none', color='black',
+    ax2.plot(t_track[653], D_grad_track[653], linestyle='none', color='black',
              marker='o',
              markersize='7', label='$t_{th}$')
-    plt.ylabel('$D(t)$')
+    ax1.set_ylabel('$D(t)$')
+    ax2.set_ylabel('$D(t)$')
     plt.xlabel('Time [cycles]')
-    plt.legend()
+    ax1.legend()
+    ax2.legend()
     plt.show()
 
     spec = np.zeros((FT_count(len(exact)), 4))
@@ -889,6 +985,7 @@ if CutSpec:
     colouring = np.linspace(0, 1,7)
     jk=6
 
+
     for cutoffs in [40,60,100]:
         color = plt.cm.jet(colouring[jk])
         t = 0.52
@@ -908,17 +1005,17 @@ if CutSpec:
     plt.plot(times,J_field,label='exact',color='black')
     plt.legend(loc='upper right')
     plt.ylim([-3,3])
-    plt.title('$J_T^{(7)}$')
+    # plt.title('$J_T^{(7)}$')
     plt.show()
 
 
 
     xlines = [2 * i - 1 for i in range(1, 6)]
-    w, spec = har_spec.spectrum_welch(exact, delta1)
-    spec = np.log10(spec)
-    w *= 2. * np.pi / prop.field
-    plt.plot(w, spec, label='Exact')
-    for cutoffs in [10, 20, 40, 60]:
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
+
+
+    for cutoffs in [10, 20, 40]:
         t = 0.52
         delta = 0.005
         ascale = 5
@@ -930,25 +1027,140 @@ if CutSpec:
         J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
         exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
         w, spec = har_spec.spectrum_welch(exact_track_alt, delta_cut)
-        spec = np.log10(spec)
+        # spec = np.log10(spec)
         w *= 2. * np.pi / prop.field
-        plt.plot(w, spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+        ax1.semilogy(w, spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+    for xc in xlines:
+        ax1.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    w *= 2. * np.pi / prop.field
+    ax1.semilogy(w, spec, color='black', linestyle='-.', label='Target')
+    ax1.annotate('a)', xy=(10.5, 10**(0)), fontsize='35')
+    ax1.set_ylabel('HHG spectra')
+    ax1.legend(loc='upper right')
+    ax1.set_xlim([0, max_harm])
+    ax1.set_ylim([10**(-12), 10**2])
+    # plt.title('$J_T^{(1)}$')
+
+    for cutoffs in [10,20,40]:
+        t=0.52
+        delta=0.05
+        ascale=1.001
+        scalefactor=1
+        delta_cut = prop_cut.freq * delta / prop.freq
+        cutparameternames1 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+            nx, cycles, U2, t, number, delta, field, F0, ascale, cutoffs)
+        J_cut_1 = np.load('./data/cutfreqs/Jfield' + cutparameternames1)
+        J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
+        exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
+        w, spec = har_spec.spectrum_welch(exact_track_alt,delta_cut)
+        # spec=np.log10(spec)
+        w *= 2. * np.pi / prop.field
+        ax2.semilogy(w,spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+    for xc in xlines:
+        ax2.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact2, delta1)
+    # spec = np.log10(spec)
+    w *= 2. * np.pi / prop.field
+    ax2.semilogy(w, spec, color='black', linestyle='-.', label='Target')
+    ax2.set_ylabel('HHG spectra')
+    ax2.legend(loc='upper right')
+    ax2.set_xlim([0, max_harm])
+    ax2.set_ylim([10**(-12), 10**2])
+    ax2.annotate('b)', xy=(10.5, 10**(0)), fontsize='35')
+    plt.xlabel('Harmonic Order')
+    plt.savefig("newtest.pdf", format="pdf", bbox_inches="tight")
+    plt.show()
+
+    fig, (ax2, ax1) = plt.subplots(nrows=2, sharex=True)
+
+    for cutoffs in [10, 20, 40]:
+        t = 0.52
+        delta = 0.05
+        ascale = 1
+        scalefactor = 1
+        delta_cut = prop_cut.freq * delta / prop.freq
+        cutparameternames1 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+            nx, cycles, U2, t, number, delta, field, F0, ascale, cutoffs)
+        J_cut_1 = np.load('./data/cutfreqs/Jfield' + cutparameternames1)
+        J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
+        exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
+        w, spec = har_spec.spectrum_welch(exact_track_alt, delta_cut)
+        # spec = np.log10(spec)
+        w *= 2. * np.pi / prop.field
+        ax1.semilogy(w, spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+    for xc in xlines:
+        ax1.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact2, delta1)
+    w *= 2. * np.pi / prop.field
+    ax1.semilogy(w, spec, color='black', linestyle='-.', label='Target')
+    ax1.set_ylabel('HHG spectra')
+    ax1.legend(loc='upper right')
+    ax1.annotate('b)', xy=(10.5, 10**(0)), fontsize='35')
+    ax1.set_xlim([0, max_harm])
+    ax1.set_ylim([10 ** (-12), 10 ** 2])
+    # plt.title('$J_T^{(1)}$')
+
+    for cutoffs in [40, 60, 100]:
+        t = 0.52
+        delta = 0.005
+        ascale = 1
+        scalefactor = 1 / 100
+        delta_cut = prop_cut.freq * delta / prop.freq
+        cutparameternames1 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+            nx, cycles, U, t, number, delta, field, F0, ascale, cutoffs)
+        J_cut_1 = np.load('./data/cutfreqs/Jfield' + cutparameternames1)
+        J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
+        exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
+        w, spec = har_spec.spectrum_welch(exact_track_alt, delta_cut)
+        # spec=np.log10(spec)
+        w *= 2. * np.pi / prop.field
+        ax2.semilogy(w, spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+    for xc in xlines:
+        ax2.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    # spec = np.log10(spec)
+    w *= 2. * np.pi / prop.field
+    ax2.semilogy(w, spec, color='black', linestyle='-.', label='Target')
+    ax2.annotate('a)', xy=(10.5, 10**(0)), fontsize='35')
+    ax2.set_ylabel('HHG spectra')
+    ax2.legend(loc='upper right')
+    ax2.set_xlim([0, max_harm])
+    ax2.set_ylim([10 ** (-12), 10 ** 2])
+    plt.xlabel('Harmonic Order')
+    plt.savefig("newtest.pdf", format="pdf", bbox_inches="tight")
+    plt.show()
+
+    for cutoffs in [10, 20, 50]:
+        t = 0.52
+        delta = 0.005
+        ascale = 5
+        scalefactor = 1
+        delta_cut = prop_cut.freq * delta / prop.freq
+        cutparameternames1 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+            nx, cycles, U, t, number, delta, field, F0, ascale, cutoffs)
+        J_cut_1 = np.load('./data/cutfreqs/Jfield' + cutparameternames1)
+        J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
+        exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
+        w, spec = har_spec.spectrum_welch(exact_track_alt, delta_cut)
+        # spec = np.log10(spec)
+        w *= 2. * np.pi / prop.field
+        plt.semilogy(w, spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
     for xc in xlines:
         plt.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    w *= 2. * np.pi / prop.field
+    plt.semilogy(w, spec, color='black', label='Exact')
     plt.xlabel('Harmonic Order')
     plt.ylabel('HHG spectra')
     plt.legend(loc='upper right')
     axes = plt.gca()
     axes.set_xlim([0, max_harm])
-    axes.set_ylim([-10, 2])
-    plt.title('$J_T^{(1)}$')
+    axes.set_ylim([10**(-10), 10**1])
+    # plt.title('$J_T^{(1)}$')
     plt.show()
 
     xlines = [2 * i - 1 for i in range(1, 6)]
-    w, spec = har_spec.spectrum_welch(exact, delta1)
-    spec = np.log10(spec)
-    w *= 2. * np.pi / prop.field
-    plt.plot(w, spec, label='Exact')
     for cutoffs in [40,60,100]:
         t=0.52
         delta=0.005
@@ -961,18 +1173,23 @@ if CutSpec:
         J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
         exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
         w, spec = har_spec.spectrum_welch(exact_track_alt,delta_cut)
-        spec=np.log10(spec)
+        # spec=np.log10(spec)
         w *= 2. * np.pi / prop.field
-        plt.plot(w,spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+        plt.semilogy(w,spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
     for xc in xlines:
         plt.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    # spec = np.log10(spec)
+    w *= 2. * np.pi / prop.field
+    plt.semilogy(w, spec, color='black', label='Exact')
     plt.xlabel('Harmonic Order')
     plt.ylabel('HHG spectra')
     plt.legend(loc='upper right')
     axes = plt.gca()
     axes.set_xlim([0, max_harm])
-    axes.set_ylim([-10, 2])
-    plt.title('$J_T^{(7)}$')
+    axes.set_ylim([10**(-10), 10**1])
+    # plt.title('$J_T^{(7)}$')
+    plt.savefig("test.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
     for delta in [0.05,0.02,0.005]:
@@ -1034,6 +1251,39 @@ if CutSpec:
     axes = plt.gca()
     axes.set_xlim([0, max_harm])
     axes.set_ylim([-16, -1])
+    plt.show()
+
+
+    xlines = [2 * i - 1 for i in range(1, 6)]
+    for cutoffs in [5,10,20,50]:
+        t=0.52
+        delta=0.05
+        ascale=1
+        scalefactor=1
+        delta_cut = prop_cut.freq * delta / prop.freq
+        cutparameternames1 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+            nx, cycles2, U2, t, number2, delta2, field, F0, ascale, cutoffs)
+        J_cut_1 = np.load('./data/cutfreqs/Jfield' + cutparameternames1)
+        J_cut_alt_1 = np.load('./data/cutfreqs/Jfieldalt' + cutparameternames1)
+        exact_track_alt = np.gradient(J_cut_alt_1.real / scalefactor, delta_cut)
+        w, spec = har_spec.spectrum_welch(exact_track_alt,delta_cut)
+        # spec=np.log10(spec)
+        w *= 2. * np.pi / prop.field
+        plt.semilogy(w,spec, label='$\\omega_c=$%s$\\omega_o$' % (cutoffs))
+    for xc in xlines:
+        plt.axvline(x=xc, color='black', linestyle='dashed')
+    w, spec = har_spec.spectrum_welch(exact2, delta2)
+    # spec = np.log10(spec)
+    w *= 2. * np.pi / prop.field
+    plt.semilogy(w, spec, color='black', label='Exact')
+    plt.xlabel('Harmonic Order')
+    plt.ylabel('HHG spectra')
+    plt.legend(loc='upper right')
+    axes = plt.gca()
+    axes.set_xlim([0, max_harm])
+    axes.set_ylim([10**(-15), 10**1])
+    # plt.title('$J_T^{(7)}$')
+    plt.savefig("test.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 
