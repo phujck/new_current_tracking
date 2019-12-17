@@ -76,7 +76,7 @@ h = hub.create_1e_ham(lat, True)
 N = int(cycles / (lat.freq * delta)) + 1
 
 phi_func = interp1d(times, phi_cut, fill_value=0, bounds_error=False, kind='cubic')
-
+print(type(phi_func))
 # plt.plot(times,phi_func(times))
 # plt.show()
 # D_func = interp1d(times, np.gradient(D,delta/(lat.freq)), fill_value=0, bounds_error=False, kind='cubic')

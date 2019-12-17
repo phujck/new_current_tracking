@@ -501,12 +501,12 @@ if Switch:
     plt.show()
 #
 #
-# """Phi and theta plots"""
-# plt.plot(t, phi_original.real, label='original')
-# # plt.plot(t2, J_field2.real, label='swapped')
-# if Tracking:
-#     # plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
-#     plt.plot(t_track, phi_track.real, label='tracked', linestyle='dashed')
+"""Phi and theta plots"""
+plt.plot(t, phi_original.real, label='original')
+# plt.plot(t2, J_field2.real, label='swapped')
+if Tracking:
+    # plt.plot(t_track, phi_track.real-np.angle(neighbour_track), label='tracked', linestyle='dashed')
+    plt.plot(t_track, phi_track.real, label='tracked', linestyle='dashed')
 #
 # # plt.legend()
 # plt.xlabel('Time [cycles]')
