@@ -1,0 +1,3 @@
+#!/Users/gerardmccaul/PycharmProjects/new_current_tracking/venv/bin/python
+from numba.pycc import main
+main()
