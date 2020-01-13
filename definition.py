@@ -27,7 +27,10 @@ class hhg(hub.Lattice):
         self.F0=F0*1.944689151e-4*(factor**2)
         assert self.nup<=self.nsites,'Too many ups!'
         assert self.ndown<=self.nsites,'Too many downs!'
-    
+
+
+"""This computes an expectation by operating on the wavefunction with cre and des operators
+ before taking the inner product with the original wavefunction"""
 def compute_inner_product(civec, norbs, nelecs, ops, cres, alphas):
   neleca, nelecb = nelecs
   ciket = civec.copy()
@@ -108,107 +111,4 @@ def progress(total, current):
 
 # calculates inner products _after_ adding two electrons
 
-def compute_inner_product_doublon(civec, norbs, nelecs, ops, cres, alphas):
-    f=0
-    for k in range(norbs):
-        neleca, nelecb = nelecs
-        civec2=dc.cre_a(civec,norbs,(neleca,nelecb),k)
-        neleca+=1
-        civec2=dc.cre_b(civec2,norbs,(neleca,nelecb),k)
-        nelecb+=1
-        ciket = civec2.copy()
-        assert (len(ops) == len(cres))
-        assert (len(ops) == len(alphas))
-        for i in reversed(range(len(ops))):
-            if alphas[i]:
-                if cres[i]:
-                    ciket = dc.cre_a(ciket, norbs, (neleca, nelecb), ops[i])
-                    neleca += 1
-                else:
-                    if neleca == 0:
-                        return 0
-                    ciket = dc.des_a(ciket, norbs, (neleca, nelecb), ops[i])
-                    neleca -= 1
-            else:
-                if cres[i]:
-                    ciket = dc.cre_b(ciket, norbs, (neleca, nelecb), ops[i])
-                    nelecb += 1
-                else:
-                    if nelecb == 0:
-                        return 0
-                    ciket = dc.des_b(ciket, norbs, (neleca, nelecb), ops[i])
-                    nelecb -= 1
-        f+=np.dot(civec2.conj().reshape(-1), ciket.reshape(-1))
-    return f/norbs
 
-def compute_inner_product_singlon(civec, norbs, nelecs, ops, cres, alphas):
-    f=0
-    for z in [0,1]:
-        for k in range(norbs):
-            neleca, nelecb = nelecs
-            if z==0:
-                civec2=dc.cre_a(civec,norbs,(neleca,nelecb),k)
-                neleca+=1
-            else:
-                civec2=dc.cre_b(civec2,norbs,(neleca,nelecb),k)
-                nelecb+=1
-            ciket = civec2.copy()
-            assert (len(ops) == len(cres))
-            assert (len(ops) == len(alphas))
-            for i in reversed(range(len(ops))):
-                if alphas[i]:
-                    if cres[i]:
-                        ciket = dc.cre_a(ciket, norbs, (neleca, nelecb), ops[i])
-                        neleca += 1
-                    else:
-                        if neleca == 0:
-                            return 0
-                        ciket = dc.des_a(ciket, norbs, (neleca, nelecb), ops[i])
-                        neleca -= 1
-                else:
-                    if cres[i]:
-                        ciket = dc.cre_b(ciket, norbs, (neleca, nelecb), ops[i])
-                        nelecb += 1
-                    else:
-                        if nelecb == 0:
-                            return 0
-                        ciket = dc.des_b(ciket, norbs, (neleca, nelecb), ops[i])
-                        nelecb -= 1
-            f+=np.dot(civec2.conj().reshape(-1), ciket.reshape(-1))
-        return f/(2*norbs)
-
-
-
-def compute_inner_product_doublon_mix(civec, norbs, nelecs, ops, cres, alphas):
-    f=0
-    for j in range(norbs):
-        for k in range(norbs):
-            neleca, nelecb = nelecs
-            civec2=dc.cre_a(civec,norbs,(neleca,nelecb),j)
-            neleca+=1
-            civec2=dc.cre_b(civec2,norbs,(neleca,nelecb),k)
-            nelecb+=1
-            ciket = civec2.copy()
-            assert (len(ops) == len(cres))
-            assert (len(ops) == len(alphas))
-            for i in reversed(range(len(ops))):
-                if alphas[i]:
-                    if cres[i]:
-                        ciket = dc.cre_a(ciket, norbs, (neleca, nelecb), ops[i])
-                        neleca += 1
-                    else:
-                        if neleca == 0:
-                            return 0
-                        ciket = dc.des_a(ciket, norbs, (neleca, nelecb), ops[i])
-                        neleca -= 1
-                else:
-                    if cres[i]:
-                        ciket = dc.cre_b(ciket, norbs, (neleca, nelecb), ops[i])
-                        nelecb += 1
-                    else:
-                        if nelecb == 0:
-                            return 0
-                        ciket = dc.des_b(ciket, norbs, (neleca, nelecb), ops[i])
-                        nelecb -= 1
-            f+=np.dot(civec2.conj().reshape(-1), ciket.reshape(-1))
-    return f/(norbs**2)
