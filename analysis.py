@@ -145,16 +145,16 @@ plt.rcParams.update(params)
 print(plt.rcParams.keys())
 # Load parameters and data. 2 suffix is for loading in a different simulation for comparison
 number = 3
-number2 = number
+number2 = 3
 nelec = (number, number)
 nx = 6
-nx2 = nx
+nx2 = 6
 ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
 U = 0* t
-U2 = 1* t
+U2 = 0* t
 delta = 0.05
 delta1 = delta
 delta2 = 0.05
@@ -167,12 +167,12 @@ F0 = 10
 a = 4
 scalefactor = 1
 scalefactor2 = 1
-ascale = 10
+ascale = 1
 ascale2 = 1
 
 
 """Turn this to True in order to load tracking files"""
-Tracking = True
+Tracking = False
 
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
@@ -236,8 +236,14 @@ D2 = np.load('./data/original/double' + parameternames2)
 times = np.linspace(0.0, cycles, len(J_field))
 times2 = np.linspace(0.0, cycles, len(J_field2))
 
-
+rank_test=np.load('./data/original/ranktestcurrent.npy')
+plt.plot(rank_test)
+plt.title('rank test')
+plt.show()
 """Plot currents"""
+
+plt.plot([6,8,10],[82,245,1988])
+plt.show()
 
 plt.subplot(211)
 plt.plot(times, J_field, label='$\\frac{U}{t_0}=0$')

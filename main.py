@@ -1,5 +1,9 @@
+import os
+threads=5
+print("threads =%s" %threads)
+# os.environ["OMP_NUM_THREADS"] = "%s" % threads
 import numpy as np
-
+from tqdm import tqdm
 
 # This contains the stuff needed to calculate some expectations. Generally contains stuff
 # that applies operators to the wave function
@@ -19,17 +23,19 @@ from matplotlib import cm as cm
 from scipy.integrate import ode
 import des_cre as dc
 
+import timeit
 
+start = timeit.default_timer()
 
 
 
 """Number of electrons"""
-number=3
+number=7
 # this specifically enforces spin up number being equal to spin down
 nelec = (number, number)
 
 """number of sites"""
-nx = 6
+nx = int(2*number)
 ny = 0
 
 """System Parameters"""
@@ -37,6 +43,7 @@ t = 0.52
 U = 1*t
 field= 32.9
 F0=10
+# F0=0
 a=4
 cycles = 10
 
@@ -75,23 +82,56 @@ print(N)
 
 
 """Set up the ode. Look at the scipy.integrate_ode page for more info."""
-r = ode(evolve.integrate_f).set_integrator('zvode', method='bdf')
-r.set_initial_value(psi_temp, 0).set_f_params(prop,time,h)
-delta=delta
-while r.successful() and r.t < time/prop.freq:
-    oldpsi=psi_temp
-    r.integrate(r.t + delta)
-    psi_temp = r.y
-    newtime = r.t
+# r = ode(evolve.integrate_f).set_integrator('zvode', method='bdf')
+# r.set_initial_value(psi_temp, 0).set_f_params(prop,time,h)
+# delta=delta
+# while r.successful() and r.t < time/prop.freq:
+#     oldpsi=psi_temp
+#     r.integrate(r.t + delta)
+#     psi_temp = r.y
+#     newtime = r.t
+#
+#     definition.progress(N, int(newtime / delta))
+#     neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
+#     J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
+#     phi_original.append(har_spec.phi(prop,newtime,time))
+#     two_body.append(har_spec.two_body_old(prop, psi_temp))
+#     D.append(observable.DHP(prop, psi_temp))
+#
+"""RK4 method"""
+for k in tqdm(range(N),desc="Nuclear Countdown:"):
+        newtime=k*delta
+        psi_temp = evolve.RK4(prop, h, delta, newtime, psi_temp, time)
+        # eJ.append(har_spec.J_expectation(lat, h, psi_temp, k*delta, time))
+        # neighbour = har_spec.nearest_neighbour(lat, psi_temp)
 
-    definition.progress(N, int(newtime / delta))
-    neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
-    J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
-    phi_original.append(har_spec.phi(prop,newtime,time))
-    two_body.append(har_spec.two_body_old(prop, psi_temp))
-    D.append(observable.DHP(prop, psi_temp))
+        neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
+        J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
+        phi_original.append(har_spec.phi(prop, newtime, time))
+        two_body.append(har_spec.two_body_old(prop, psi_temp))
+        D.append(observable.DHP(prop, psi_temp))
 
-
+"""rank testing"""
+# for k in tqdm(range(N)):
+#         # definition.progress(N,k)
+#         newtime=k*delta
+#         if k==0:
+#             # psi_temp = evolve.RK4_max(prop, h, delta, psi_temp, time)
+#             psi_temp = evolve.RK4_constant(prop, h, delta, 120,psi_temp, time)
+#             J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 120, time)))
+#
+#
+#         else:
+#             psi_temp = evolve.RK4_constant(prop, h, delta,0, psi_temp, time)
+#             J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 0, time)))
+#         # eJ.append(har_spec.J_expectation(lat, h, psi_temp, k*delta, time))
+#         # neighbour = har_spec.nearest_neighbour(lat, psi_temp)
+#
+#         neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
+#         # J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
+#         phi_original.append(har_spec.phi(prop, newtime, time))
+#         two_body.append(har_spec.two_body_old(prop, psi_temp))
+#         D.append(observable.DHP(prop, psi_temp))
 
 
 del phi_reconstruct[0:2]
@@ -103,5 +143,11 @@ np.save('./data/original/neighbour'+parameternames,neighbour)
 np.save('./data/original/twobody'+parameternames,two_body)
 np.save('./data/original/double'+parameternames,D)
 
+# np.save('./data/original/ranktestcurrent',J_field)
+
+print("threads =%s" %threads)
+stop = timeit.default_timer()
+
+print('Time: ', stop - start)
 
 
