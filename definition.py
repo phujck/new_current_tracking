@@ -98,7 +98,7 @@ def hubbard(lat):
     h1 = hub.create_1e_ham(lat,True)
     h2 = ham2(lat)
     cisolver = fci.direct_spin1.FCI()
-    e, fcivec = cisolver.kernel(h1, h2, lat.nsites, (lat.nup,lat.ndown))
+    e, fcivec = cisolver.kernel(h1, h2, lat.nsites, (lat.nup, lat.ndown), max_memory=778627727360)
     return (e,fcivec.reshape(-1))
 
 def progress(total, current):

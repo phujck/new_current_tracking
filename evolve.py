@@ -18,6 +18,20 @@ def ham1(lat, h, current_time, cycles):
     return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
 
 
+def ham_max(lat, h):
+    if lat.field == 0.:
+        phi = 0.
+    else:
+        phi = (lat.a * lat.F0 / lat.field)
+    h_forwards = np.triu(h)
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
+    h_backwards = np.tril(h)
+    h_backwards[-1, 0] = 0.0
+    h_backwards[0, -1] = h[0, -1]
+    return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
+
+
 def f(lat, h1, psi):
     psi_r = psi.real
     psi_i = psi.imag
@@ -69,13 +83,35 @@ def RK4(lat, h, delta, current_time, psi, cycles):
     return psi + (k1 + 2. * k2 + 2. * k3 + k4) / 6.
 
 
+def RK4_constant(lat, h, delta, current_time, psi, cycles):
+    ht = ham1(lat, h, current_time, cycles)
+    k1 = -1.j * delta * f(lat, ht, psi)
+    ht = ham1(lat, h, current_time, cycles)
+    k2 = -1.j * delta * f(lat, ht, psi + 0.5 * k1)
+    k3 = -1.j * delta * f(lat, ht, psi + 0.5 * k2)
+    ht = ham1(lat, h, current_time, cycles)
+    k4 = -1.j * delta * f(lat, ht, psi + k3)
+    return psi + (k1 + 2. * k2 + 2. * k3 + k4) / 6.
+
+
+def RK4_max(lat, h, delta, psi, cycles):
+    ht = ham_max(lat, h)
+    k1 = -1.j * delta * f(lat, ht, psi)
+    ht = ham_max(lat, h)
+    k2 = -1.j * delta * f(lat, ht, psi + 0.5 * k1)
+    k3 = -1.j * delta * f(lat, ht, psi + 0.5 * k2)
+    ht = ham_max(lat, h)
+    k4 = -1.j * delta * f(lat, ht, psi + k3)
+    return psi + (k1 + 2. * k2 + 2. * k3 + k4) / 6.
+
+
 def RK1(lat, h, delta, current_time, psi, cycles):
     ht = ham1(lat, h, current_time, cycles)
     k = -1.j * delta * f(lat, ht, psi)
     return psi + k
 
 
-def phi_J_track(lat, current_time, J_reconstruct,neighbour, psi):
+def phi_J_track(lat, current_time, J_reconstruct, neighbour, psi):
     # Import the current function
     # if current_time <self.delta:
     #     current=self.J_reconstruct(0)

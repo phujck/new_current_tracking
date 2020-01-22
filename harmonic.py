@@ -69,6 +69,7 @@ def J_expectation(lat,h,psi,current_time,cycles):
     # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
     return (np.dot(psi.conj(),fJ(lat,J,psi))).real
 
+
 def J_expectation_cutfreq(lat,h,psi, cut_phi):
     J = current_cutfreq(lat,h, cut_phi)
     # print('real part')
