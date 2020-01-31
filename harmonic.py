@@ -18,23 +18,40 @@ def spectrum_hanning(at,delta):
     spec = 2.*(abs(np.fft.rfft(win*at))**2.)/(sum(win**2.))**2
     return (w, spec)
 
-def current(lat,h,current_time,cycles):
-    if lat.field==0.:
+
+def current(lat, h, current_time, cycles):
+    if lat.field == 0.:
         phi = 0.
     else:
-        phi = (lat.a*lat.F0/lat.field)*(np.sin(lat.field*current_time/(2.*cycles))**2.)*np.sin(lat.field*current_time)
+        phi = (lat.a * lat.F0 / lat.field) * (np.sin(lat.field * current_time / (2. * cycles)) ** 2.) * np.sin(
+            lat.field * current_time)
     h_forwards = np.triu(h)
-    h_forwards[0,-1] = 0.0
-    h_forwards[-1,0] = h[-1,0]
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
     h_backwards = np.tril(h)
-    h_backwards[-1,0] = 0.0
-    h_backwards[0,-1] = h[0,-1]
-    return 1.j*lat.a*(np.exp(-1.j*phi)*h_backwards - np.exp(1.j*phi)*h_forwards)
+    h_backwards[-1, 0] = 0.0
+    h_backwards[0, -1] = h[0, -1]
+    return 1.j * lat.a * (np.exp(-1.j * phi) * h_backwards - np.exp(1.j * phi) * h_forwards)
 
-def current_track(lat,h,phi):
+
+def current_set_amplitude(pre, lat, h, current_time, cycles):
+    if lat.field == 0.:
+        phi = 0.
+    else:
+        phi = pre * (np.sin(lat.field * current_time / (2. * cycles)) ** 2.) * np.sin(lat.field * current_time)
     h_forwards = np.triu(h)
-    h_forwards[0,-1] = 0.0
-    h_forwards[-1,0] = h[-1,0]
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
+    h_backwards = np.tril(h)
+    h_backwards[-1, 0] = 0.0
+    h_backwards[0, -1] = h[0, -1]
+    return 1.j * lat.a * (np.exp(-1.j * phi) * h_backwards - np.exp(1.j * phi) * h_forwards)
+
+
+def current_track(lat, h, phi):
+    h_forwards = np.triu(h)
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
     h_backwards = np.tril(h)
     h_backwards[-1,0] = 0.0
     h_backwards[0,-1] = h[0,-1]
@@ -57,21 +74,31 @@ def J_expectation_track(lat,h,psi,phi):
     # print('imaginary part')
     # print(J.imag)
     # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
-    return (np.dot(psi.conj(),fJ(lat,J,psi))).real
+    return (np.dot(psi.conj(), fJ(lat, J, psi))).real
 
 
-def J_expectation(lat,h,psi,current_time,cycles):
-    J = current(lat,h,current_time,cycles)
+def J_expectation(lat, h, psi, current_time, cycles):
+    J = current(lat, h, current_time, cycles)
     # print('real part')
     # print(J.real)
     # print('imaginary part')
     # print(J.imag)
     # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
-    return (np.dot(psi.conj(),fJ(lat,J,psi))).real
+    return (np.dot(psi.conj(), fJ(lat, J, psi))).real
 
 
-def J_expectation_cutfreq(lat,h,psi, cut_phi):
-    J = current_cutfreq(lat,h, cut_phi)
+def J_expectation_set_amplitude(pre, lat, h, psi, current_time, cycles):
+    J = current_set_amplitude(pre, lat, h, current_time, cycles)
+    # print('real part')
+    # print(J.real)
+    # print('imaginary part')
+    # print(J.imag)
+    # print((np.dot(psi.conj(),fJ(lat,J,psi))).imag)
+    return (np.dot(psi.conj(), fJ(lat, J, psi))).real
+
+
+def J_expectation_cutfreq(lat, h, psi, cut_phi):
+    J = current_cutfreq(lat, h, cut_phi)
     # print('real part')
     # print(J.real)
     # print('imaginary part')

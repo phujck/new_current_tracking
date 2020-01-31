@@ -115,8 +115,6 @@ def plot_spectra_track(U, w, spec, min_spec, max_harm):
     plt.show()
 
 
-
-
 def FT_count(N):
     if N % 2 == 0:
         return int(1 + N / 2)
@@ -155,8 +153,8 @@ ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0* t
-U2 = 0* t
+U = 0 * t
+U2 = 0 * t
 delta = 0.05
 delta1 = delta
 delta2 = 0.05
@@ -173,13 +171,13 @@ ascale = 1
 ascale2 = 1
 
 """Turn this to True in order to load tracking files"""
-Tracking = False
+fitting = False
 
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
 print(prop.field)
 print(prop2.field)
-if Tracking:
+if fitting:
     """Notice the U's have been swapped on the presumption of tracking the _other_ system."""
     prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t, F0=F0, a=ascale * a,
                           bc='pbc')
@@ -196,19 +194,6 @@ if Tracking:
     two_body_track = np.load('./data/tracking/twobody' + newparameternames)
     t_track = np.linspace(0.0, cycles, len(J_field_track))
     D_track = np.load('./data/tracking/double' + newparameternames)
-
-    newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles2, U2, t2, number2, delta2, field, F0, ascale2, scalefactor2)
-
-    J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor2
-    phi_track2 = np.load('./data/tracking/phi' + newparameternames2)
-    neighbour_track2 = np.load('./data/tracking/neighbour' + newparameternames2)
-    two_body_track2 = np.load('./data/tracking/twobody' + newparameternames2)
-    t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
-    D_track2 = np.load('./data/tracking/double' + newparameternames2)
-
-    times_track = np.linspace(0.0, cycles, len(J_field_track))
-    times_track2 = np.linspace(0.0, cycles, len(J_field_track2))
 
 # load files
 parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
@@ -265,107 +250,33 @@ plt.ylabel('$J(t)$')
 plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=25)
 plt.show()
 
-"""Plotting Gradients"""
-two_body = np.array(two_body)
-extra = 2. * np.real(np.exp(-1j * phi_original) * two_body)
-diff = phi_original - np.angle(neighbour)
-two_body2 = np.array(two_body2)
-extra2 = 2. * np.real(np.exp(-1j * phi_original2) * two_body2)
-diff2 = phi_original2 - np.angle(neighbour2)
-J_grad = -2. * prop.a * prop.t * np.gradient(phi_original, delta) * np.abs(neighbour) * np.cos(diff)
-J_grad2 = -2. * prop2.a * prop2.t * np.gradient(phi_original2, delta2) * np.abs(neighbour2) * np.cos(diff2)
-exact = np.gradient(J_field, delta1)
-exact2 = np.gradient(J_field2, delta2)
-#
-#
-#
-# # eq 32 should have a minus sign on the second term, but
-eq32 = J_grad - prop.a * prop.t * prop.U * extra
-# eq32= -prop.a * prop.t * prop.U * extra
-eq33 = J_grad + 2. * prop.a * prop.t * (
-        np.gradient(np.angle(neighbour), delta1) * np.abs(neighbour) * np.cos(diff) - np.gradient(
-    np.abs(neighbour), delta1) * np.sin(diff))
+diff_track = phi_track - theta
+J_grad_track = -2. * prop_track.a * prop_track.t * np.gradient(phi_track, delta_track) * np.abs(
+    neighbour_track) * np.cos(diff_track)
+exact_track = np.gradient(J_field_track, delta_track)
+exact_track2 = np.gradient(J_field_track2, delta_track2)
 
-# Just in case you want to plot from a second simulation
+print(max(exact) / max(exact_track))
+# eq 32 is the Ehrenfest theorem from direct differentiation of J expectation
+eq32_track = (J_grad_track - prop_track.a * prop_track.t * prop_track.U * extra_track) / scalefactor
+print(max(eq32) / max(eq32_track))
+# eq33 works in terms of the nearest neighbour expectation. It should give the same result as eq32,
+# but it's vital that the angles have their discontinuities removed first.
 
-eq32_2 = J_grad2 - prop2.a * prop2.t * prop2.U * extra2
-eq33_2 = J_grad2 + 2. * prop2.a * prop2.t * (
-        np.gradient(np.angle(neighbour2), delta2) * np.abs(neighbour2) * np.cos(diff2) - np.gradient(
-    np.abs(neighbour2), delta2) * np.sin(diff2))
-
-# plt.plot(t, eq33-J_grad, label='Gradient calculated via expectations', linestyle='dashdot')
-# plt.plot(t, eq32-J_grad, linestyle='dashed')
-# plt.show()
-
-
-# plot various gradient calculations
-# plt.plot(t, eq33, label='Gradient calculated via expectations', linestyle='dashdot')
-plt.subplot(211)
-plt.plot(times, exact, label='Numerical gradient')
-plt.plot(times, eq32, linestyle='dashed',
-         label='Analytical gradient')
-# plt.xlabel('Time [cycles]')
+eq33_track = (J_grad_track + 2. * prop_track.a * prop_track.t * (
+        np.gradient(theta, delta_track) * np.abs(neighbour_track) * np.cos(
+    diff_track) - np.gradient(
+    np.abs(neighbour_track), delta_track) * np.sin(diff_track))) / scalefactor
+plt.subplot(311)
+# plt.plot(t, eq32, label='original')
+plt.plot(t_track, exact_track,
+         label='original')
+# plt.plot(t_track[:-5], eq33_track[:-5], linestyle='-.',
+#          label='analytical')
+plt.plot(t_track[:-5], eq32_track[:-5], linestyle='dashed',
+         label='tracked')
 plt.ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
-plt.legend()
-plt.annotate('a)', xy=(0.3, np.max(exact) - 0.2), fontsize='25')
-
-plt.subplot(212)
-plt.plot(times2, exact2, label='Numerical gradient')
-plt.plot(times2, eq32_2, linestyle='dashed',
-         label='Analytical gradient')
-plt.xlabel('Time [cycles]')
-plt.ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
-plt.annotate('b)', xy=(0.3, np.max(exact) - 0.1), fontsize='25')
-plt.show()
-
-"""Checking Ehrenfest with tracking"""
-
-if Tracking:
-    phi_track_shift = np.copy(phi_track)
-    theta = np.angle(neighbour_track)
-    # THIS REMOVES DISCONTINUITIES FROM PHI-THETA. IMPORTANT FOR GETTING EHRENFEST RIGHT!
-    for j in range(1, int(len(phi_track_shift))):
-        k = phi_track_shift[j] - phi_track_shift[j - 1]
-        k2 = theta[j] - theta[j - 1]
-
-        if k > 1.8 * np.pi:
-            phi_track_shift[j:] = phi_track_shift[j:] - 2 * np.pi
-        if k < -1.8 * np.pi:
-            phi_track_shift[j:] = phi_track_shift[j:] + 2 * np.pi
-        if k2 > 1.8 * np.pi:
-            theta[j:] = theta[j:] - 2 * np.pi
-        if k2 < -1.8 * np.pi:
-            theta[j:] = theta[j:] + 2 * np.pi
-    phi_track = phi_track_shift
-    extra_track = 2. * np.real(np.exp(-1j * phi_track) * two_body_track)
-
-    diff_track = phi_track - theta
-    J_grad_track = -2. * prop_track.a * prop_track.t * np.gradient(phi_track, delta_track) * np.abs(
-        neighbour_track) * np.cos(diff_track)
-    exact_track = np.gradient(J_field_track, delta_track)
-    exact_track2 = np.gradient(J_field_track2, delta_track2)
-
-    print(max(exact) / max(exact_track))
-    # eq 32 is the Ehrenfest theorem from direct differentiation of J expectation
-    eq32_track = (J_grad_track - prop_track.a * prop_track.t * prop_track.U * extra_track) / scalefactor
-    print(max(eq32) / max(eq32_track))
-    # eq33 works in terms of the nearest neighbour expectation. It should give the same result as eq32,
-    # but it's vital that the angles have their discontinuities removed first.
-
-    eq33_track = (J_grad_track + 2. * prop_track.a * prop_track.t * (
-            np.gradient(theta, delta_track) * np.abs(neighbour_track) * np.cos(
-        diff_track) - np.gradient(
-        np.abs(neighbour_track), delta_track) * np.sin(diff_track))) / scalefactor
-    plt.subplot(311)
-    # plt.plot(t, eq32, label='original')
-    plt.plot(t_track, exact_track,
-             label='original')
-    # plt.plot(t_track[:-5], eq33_track[:-5], linestyle='-.',
-    #          label='analytical')
-    plt.plot(t_track[:-5], eq32_track[:-5], linestyle='dashed',
-             label='tracked')
-    plt.ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
-    plt.legend()  #
+plt.legend()  #
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
 print(prop.field)
@@ -462,165 +373,3 @@ else:
 w *= 2. * np.pi / prop.field
 w2 *= 2. * np.pi / prop.field
 plot_spectra([prop.U, prop2.U], w, spec, min_spec, max_harm)
-dimensionalitysite = []
-dimensionalityelectron = []
-dimensionalityU = []
-"""Calculate ranks"""
-# U=1*t
-# for k in [2,3,4,5]:
-#     sites=int(2*k)
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrent' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f=0
-#     for j in range(0,len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.01:
-#             f+=1
-#         else:
-#             break
-#     dimensionalitysite.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='%s sites' % sites)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-# plt.show()
-#
-# linearfit=np.array([4,6,8,10])
-# plt.plot([4,6,8,10],2*(linearfit-3))
-# plt.plot([4,6,8,10],dimensionalitysite)
-# plt.title('effective system rank varying site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlabel('Site number')
-# plt.ylabel("System rank")
-# plt.show()
-#
-# for k in [2,3,4,5]:
-#     sites=10
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentvarynumber' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f=0
-#     for j in range(0,len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f+=1
-#         else:
-#             break
-#     dimensionalityelectron.append(f)
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$n_\\uparrow=n_\\downarrow=$%s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-#
-# plt.show()
-#
-# plt.plot([2,3,4,5],dimensionalityelectron)
-# plt.xlabel('$n_\\uparrow$')
-# plt.title('effective system rank varying electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.ylabel("System rank")
-# plt.show()
-#
-# for k in [0.1,0.5,1,2,4,8,10,12,14,16,18]:
-#     U=k*t
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         nx, cycles, U, t, number, delta, field, F0)
-#     # current = np.load('./data/original/ranktestcurrent' + parameternames)
-#     current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f += 1
-#         else:
-#             break
-#     dimensionalityU.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$\\frac{U}{t_0}=$ %s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on system parameters at 6 sites half filling')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-# plt.show()
-#
-#
-# plt.plot([0.1,0.5,1,2,4,8,10,12,14,16,18],dimensionalityU)
-# plt.xlabel('$\\frac{U}{t_0}$')
-# plt.ylabel("System rank")
-# plt.title('effective system rank at 6 sites half filling varying  $\\frac{U}{t_0}$')
-# plt.show()
-
-
-# U = 1 * t
-# cycles = 0.2
-# for k in [2, 3, 4, 5, 6, 7,8]:
-#     sites = int(2 * k)
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentshorttime' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.01:
-#             f += 1
-#         else:
-#             break
-#     dimensionalitysite.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-', label='%s sites' % sites)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlim([0, 40])
-# plt.ylim([10 ** (-4), 1.1])
-# plt.show()
-#
-# fit = np.polyfit([4, 6, 8, 10, 12, 14,16], dimensionalitysite, deg=1)
-# linearfit = np.array([4, 6, 8, 10, 12, 14,16])
-# # plt.plot([4, 6, 8, 10, 12, 14,16], fit[0] * linearfit + fit[1])
-# plt.plot([4, 6, 8, 10, 12, 14,16], dimensionalitysite)
-#
-# plt.title('effective system rank varying site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlabel('Site number')
-# plt.ylabel("System rank")
-# plt.show()

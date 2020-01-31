@@ -78,6 +78,22 @@ def plot_spectra(U, w, spec, min_spec, max_harm):
     plt.show()
 
 
+def plot_phi_spectra(U, w, spec, min_spec, max_harm):
+    # spec = np.log10(spec)
+    xlines = [2 * i - 1 for i in range(1, 6)]
+    for i, j in enumerate(U):
+        plt.semilogy(w, spec[:, i], label='$\\frac{U}{t_0}=$ %.1f' % (j))
+        axes = plt.gca()
+        axes.set_xlim([0, max_harm])
+        axes.set_ylim([10 ** (-15), spec.max()])
+    for xc in xlines:
+        plt.axvline(x=xc, color='black', linestyle='dashed')
+        plt.xlabel('Harmonic Order')
+        plt.ylabel('$\\mathcal{F}\\left(\\frac{a_T}{a}\\Phi_T(t)\\right)$')
+    plt.legend(loc='upper right')
+    plt.show()
+
+
 def plot_spectra_switch(U, w, spec, min_spec, max_harm):
     spec = np.log10(spec)
     xlines = [2 * i - 1 for i in range(1, 6)]
@@ -113,8 +129,6 @@ def plot_spectra_track(U, w, spec, min_spec, max_harm):
         plt.ylabel('HHG spectra')
     plt.legend(loc='upper right')
     plt.show()
-
-
 
 
 def FT_count(N):
@@ -155,11 +169,11 @@ ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0* t
-U2 = 0* t
-delta = 0.05
+U = 0 * t
+U2 = 0.2 * t
+delta = 0.02
 delta1 = delta
-delta2 = 0.05
+delta2 = 0.02
 cycles = 10
 cycles2 = 10
 # field= 32.9
@@ -169,11 +183,11 @@ F0 = 10
 a = 4
 scalefactor = 1
 scalefactor2 = 1
-ascale = 1
+ascale = 2.5
 ascale2 = 1
 
 """Turn this to True in order to load tracking files"""
-Tracking = False
+Tracking = True
 
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
@@ -216,6 +230,8 @@ parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-ampli
 newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
     nx, cycles, U, t, number, delta, field, F0, ascale)
 J_field = np.load('./data/original/Jfield' + parameternames)
+J_field_compare = np.load('./data/original/Jfield_compare' + parameternames)
+
 phi_original = np.load('./data/original/phi' + parameternames)
 phi_reconstruct = np.load('./data/original/phirecon' + parameternames)
 neighbour = np.load('./data/original/neighbour' + parameternames)
@@ -228,6 +244,8 @@ parameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-ampl
 newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
     nx2, cycles2, U2, t2, number2, delta2, field2, F0, ascale2)
 J_field2 = np.load('./data/original/Jfield' + parameternames2)
+J_field_compare2 = np.load('./data/original/Jfield_compare' + parameternames2)
+
 two_body2 = np.load('./data/original/twobody' + parameternames2)
 neighbour2 = np.load('./data/original/neighbour' + parameternames2)
 phi_original2 = np.load('./data/original/phi' + parameternames2)
@@ -235,14 +253,34 @@ D2 = np.load('./data/original/double' + parameternames2)
 
 times = np.linspace(0.0, cycles, len(J_field))
 times2 = np.linspace(0.0, cycles, len(J_field2))
+#
+# rank_test=np.load('./data/original/ranktestcurrent.npy')
+# plt.plot(rank_test)
+# plt.title('rank test')
+# plt.show()
+# """Plot currents"""
+#
+# plt.plot([6,8,10],[82,245,1988])
+# plt.show()
 
-rank_test = np.load('./data/original/ranktestcurrent.npy')
-plt.plot(rank_test)
-plt.title('rank test')
-plt.show()
-"""Plot currents"""
+plt.subplot(211)
+plt.plot(times, J_field_compare, label='$\\frac{U}{t_0}=0$')
+if Tracking:
+    plt.plot(t_track * prop_track.freq / prop.freq, J_field_track, linestyle='dashed',
+             label='Tracked Current')
+# plt.xlabel('Time [cycles]')
+plt.ylabel('$J(t)$')
+# plt.legend(loc='upper right')
+plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.08), fontsize=25)
 
-plt.plot([6, 8, 10], [82, 245, 1988])
+plt.subplot(212)
+plt.plot(times2, J_field_compare2, label='\\frac{U}{t_0}=7')
+if Tracking:
+    plt.plot(t_track2, J_field_track2, linestyle='dashed',
+             label='Tracked current')
+plt.xlabel('Time [cycles]')
+plt.ylabel('$J(t)$')
+plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=25)
 plt.show()
 
 plt.subplot(211)
@@ -338,6 +376,53 @@ if Tracking:
             theta[j:] = theta[j:] + 2 * np.pi
     phi_track = phi_track_shift
     extra_track = 2. * np.real(np.exp(-1j * phi_track) * two_body_track)
+    phi_track_shift = np.copy(phi_track2)
+    theta = np.angle(neighbour_track)
+    # THIS REMOVES DISCONTINUITIES FROM PHI-THETA. IMPORTANT FOR GETTING EHRENFEST RIGHT!
+    for j in range(1, int(len(phi_track_shift))):
+        k = phi_track_shift[j] - phi_track_shift[j - 1]
+        k2 = theta[j] - theta[j - 1]
+
+        if k > 1.8 * np.pi:
+            phi_track_shift[j:] = phi_track_shift[j:] - 2 * np.pi
+        if k < -1.8 * np.pi:
+            phi_track_shift[j:] = phi_track_shift[j:] + 2 * np.pi
+        if k2 > 1.8 * np.pi:
+            theta[j:] = theta[j:] - 2 * np.pi
+        if k2 < -1.8 * np.pi:
+            theta[j:] = theta[j:] + 2 * np.pi
+    phi_track2 = phi_track_shift
+    extra_track2 = 2. * np.real(np.exp(-1j * phi_track2) * two_body_track)
+    plt.plot(times, phi_track.real * ascale, label='$\\frac{U}{t_0}=$ %.1f' % (prop_track.U))
+    plt.plot(times, phi_track2.real * ascale2, label='$\\frac{U}{t_0}=$ %.1f' % (prop_track2.U))
+    plt.plot(times, phi_original2, label='reference $\\Phi(t)$')
+    plt.legend()
+    plt.xlabel('Time [cycles]')
+    plt.ylabel('$\\frac{a_T}{a}\\Phi_T(t)$')
+    plt.yticks(np.arange(-3 * np.pi, 3 * np.pi, 0.5 * np.pi),
+               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-3 * np.pi, 3 * np.pi, .5 * np.pi)])
+    plt.show()
+    method = 'welch'
+    min_spec = 15
+    max_harm = 60
+    gabor = 'fL'
+
+    spec = np.zeros((FT_count(len(J_field)), 3))
+    if method == 'welch':
+        w, spec[:, 0] = har_spec.spectrum_welch(phi_track * ascale, delta1)
+        # w2, spec[:,1] = har_spec.spectrum_welch(exact_track, delta_track)
+        w2, spec[:, 1] = har_spec.spectrum_welch(phi_track2 * ascale, delta2)
+    elif method == 'hann':
+        w, spec[:, 0] = har_spec.spectrum_hanning(exact, delta1)
+        w2, spec[:, 0] = har_spec.spectrum_hanning(exact2, delta2)
+    elif method == 'none':
+        w, spec[:, 0] = har_spec.spectrum(exact, delta1)
+        w2, spec[:, 0] = har_spec.spectrum(exact2, delta2)
+    else:
+        print('Invalid spectrum method')
+    w *= 2. * np.pi / prop.field
+    w2 *= 2. * np.pi / prop.field
+    plot_phi_spectra([prop_track.U, prop_track2.U], w, spec, min_spec, max_harm)
 
     diff_track = phi_track - theta
     J_grad_track = -2. * prop_track.a * prop_track.t * np.gradient(phi_track, delta_track) * np.abs(
@@ -370,62 +455,64 @@ prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
 print(prop.field)
 print(prop2.field)
-if Tracking:
-    """Notice the U's have been swapped on the presumption of tracking the _other_ system."""
-    prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t, F0=F0, a=ascale * a,
-                          bc='pbc')
-    prop_track2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=ascale2 * a,
-                           bc='pbc')
-    delta_track = prop_track.freq * delta / prop.freq
-    delta_track2 = prop_track2.freq * delta2 / prop.freq
-    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor)
+# if Tracking:
+#     """Notice the U's have been swapped on the presumption of tracking the _other_ system."""
+#     prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t, F0=F0, a=ascale * a,
+#                           bc='pbc')
+#     prop_track2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=ascale2 * a,
+#                            bc='pbc')
+#     delta_track = prop_track.freq * delta / prop.freq
+#     delta_track2 = prop_track2.freq * delta2 / prop.freq
+#     newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
+#         nx, cycles, U, t, number, delta, field, F0, ascale,scalefactor)
+#
+#     J_field_track = np.load('./data/tracking/Jfield' + newparameternames) / scalefactor
+#     phi_track = np.load('./data/tracking/phi' + newparameternames)
+#     neighbour_track = np.load('./data/tracking/neighbour' + newparameternames)
+#     two_body_track = np.load('./data/tracking/twobody' + newparameternames)
+#     t_track = np.linspace(0.0, cycles, len(J_field_track))
+#     D_track = np.load('./data/tracking/double' + newparameternames)
+#
+#     newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
+#         nx, cycles2, U2, t2, number2, delta2, field, F0, ascale2,scalefactor2)
+#
+#     J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor2
+#     phi_track2 = np.load('./data/tracking/phi' + newparameternames2)
+#     neighbour_track2 = np.load('./data/tracking/neighbour' + newparameternames2)
+#     two_body_track2 = np.load('./data/tracking/twobody' + newparameternames2)
+#     t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
+#     D_track2 = np.load('./data/tracking/double' + newparameternames2)
+#
+#     times_track = np.linspace(0.0, cycles, len(J_field_track))
+#     times_track2 = np.linspace(0.0, cycles, len(J_field_track2))
 
-    J_field_track = np.load('./data/tracking/Jfield' + newparameternames) / scalefactor
-    phi_track = np.load('./data/tracking/phi' + newparameternames)
-    neighbour_track = np.load('./data/tracking/neighbour' + newparameternames)
-    two_body_track = np.load('./data/tracking/twobody' + newparameternames)
-    t_track = np.linspace(0.0, cycles, len(J_field_track))
-    D_track = np.load('./data/tracking/double' + newparameternames)
+# # load files
+# parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+#     nx, cycles, U, t, number, delta, field, F0)
+# newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
+#     nx, cycles, U, t, number, delta, field, F0, ascale)
+# J_field = np.load('./data/original/Jfield' + parameternames)
+# phi_original = np.load('./data/original/phi' + parameternames)
+# phi_reconstruct = np.load('./data/original/phirecon' + parameternames)
+# neighbour = np.load('./data/original/neighbour' + parameternames)
+#
+# two_body = np.load('./data/original/twobody' + parameternames)
+# D = np.load('./data/original/double' + parameternames)
+#
+#
+# parameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+#     nx2, cycles2, U2, t2, number2, delta2, field2, F0)
+# newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
+#     nx2, cycles2, U2, t2, number2, delta2, field2, F0, ascale2)
+# J_field2 = np.load('./data/original/Jfield' + parameternames2)
+# two_body2 = np.load('./data/original/twobody' + parameternames2)
+# neighbour2 = np.load('./data/original/neighbour' + parameternames2)
+# phi_original2 = np.load('./data/original/phi' + parameternames2)
+# D2 = np.load('./data/original/double' + parameternames2)
+#
+# times = np.linspace(0.0, cycles, len(J_field))
+# times2 = np.linspace(0.0, cycles, len(J_field2))
 
-    newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles2, U2, t2, number2, delta2, field, F0, ascale2, scalefactor2)
-
-    J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor2
-    phi_track2 = np.load('./data/tracking/phi' + newparameternames2)
-    neighbour_track2 = np.load('./data/tracking/neighbour' + newparameternames2)
-    two_body_track2 = np.load('./data/tracking/twobody' + newparameternames2)
-    t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
-    D_track2 = np.load('./data/tracking/double' + newparameternames2)
-
-    times_track = np.linspace(0.0, cycles, len(J_field_track))
-    times_track2 = np.linspace(0.0, cycles, len(J_field_track2))
-
-# load files
-parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-    nx, cycles, U, t, number, delta, field, F0)
-newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
-    nx, cycles, U, t, number, delta, field, F0, ascale)
-J_field = np.load('./data/original/Jfield' + parameternames)
-phi_original = np.load('./data/original/phi' + parameternames)
-phi_reconstruct = np.load('./data/original/phirecon' + parameternames)
-neighbour = np.load('./data/original/neighbour' + parameternames)
-
-two_body = np.load('./data/original/twobody' + parameternames)
-D = np.load('./data/original/double' + parameternames)
-
-parameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-    nx2, cycles2, U2, t2, number2, delta2, field2, F0)
-newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
-    nx2, cycles2, U2, t2, number2, delta2, field2, F0, ascale2)
-J_field2 = np.load('./data/original/Jfield' + parameternames2)
-two_body2 = np.load('./data/original/twobody' + parameternames2)
-neighbour2 = np.load('./data/original/neighbour' + parameternames2)
-phi_original2 = np.load('./data/original/phi' + parameternames2)
-D2 = np.load('./data/original/double' + parameternames2)
-
-times = np.linspace(0.0, cycles, len(J_field))
-times2 = np.linspace(0.0, cycles, len(J_field2))
 
 plt.subplot(312)
 plt.plot(times, np.abs(neighbour), label='original')
@@ -462,165 +549,71 @@ else:
 w *= 2. * np.pi / prop.field
 w2 *= 2. * np.pi / prop.field
 plot_spectra([prop.U, prop2.U], w, spec, min_spec, max_harm)
-dimensionalitysite = []
-dimensionalityelectron = []
-dimensionalityU = []
-"""Calculate ranks"""
-# U=1*t
-# for k in [2,3,4,5]:
-#     sites=int(2*k)
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrent' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f=0
-#     for j in range(0,len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.01:
-#             f+=1
-#         else:
-#             break
-#     dimensionalitysite.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='%s sites' % sites)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-# plt.show()
-#
-# linearfit=np.array([4,6,8,10])
-# plt.plot([4,6,8,10],2*(linearfit-3))
-# plt.plot([4,6,8,10],dimensionalitysite)
-# plt.title('effective system rank varying site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlabel('Site number')
-# plt.ylabel("System rank")
-# plt.show()
-#
-# for k in [2,3,4,5]:
-#     sites=10
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentvarynumber' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f=0
-#     for j in range(0,len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f+=1
-#         else:
-#             break
-#     dimensionalityelectron.append(f)
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$n_\\uparrow=n_\\downarrow=$%s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-#
-# plt.show()
-#
-# plt.plot([2,3,4,5],dimensionalityelectron)
-# plt.xlabel('$n_\\uparrow$')
-# plt.title('effective system rank varying electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.ylabel("System rank")
-# plt.show()
-#
-# for k in [0.1,0.5,1,2,4,8,10,12,14,16,18]:
-#     U=k*t
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         nx, cycles, U, t, number, delta, field, F0)
-#     # current = np.load('./data/original/ranktestcurrent' + parameternames)
-#     current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f += 1
-#         else:
-#             break
-#     dimensionalityU.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$\\frac{U}{t_0}=$ %s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on system parameters at 6 sites half filling')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-# plt.show()
-#
-#
-# plt.plot([0.1,0.5,1,2,4,8,10,12,14,16,18],dimensionalityU)
-# plt.xlabel('$\\frac{U}{t_0}$')
-# plt.ylabel("System rank")
-# plt.title('effective system rank at 6 sites half filling varying  $\\frac{U}{t_0}$')
-# plt.show()
 
+delta = 0.1
+phi_delta = 0.1
 
-# U = 1 * t
-# cycles = 0.2
-# for k in [2, 3, 4, 5, 6, 7,8]:
-#     sites = int(2 * k)
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentshorttime' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.01:
-#             f += 1
-#         else:
-#             break
-#     dimensionalitysite.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-', label='%s sites' % sites)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlim([0, 40])
-# plt.ylim([10 ** (-4), 1.1])
-# plt.show()
-#
-# fit = np.polyfit([4, 6, 8, 10, 12, 14,16], dimensionalitysite, deg=1)
-# linearfit = np.array([4, 6, 8, 10, 12, 14,16])
-# # plt.plot([4, 6, 8, 10, 12, 14,16], fit[0] * linearfit + fit[1])
-# plt.plot([4, 6, 8, 10, 12, 14,16], dimensionalitysite)
-#
-# plt.title('effective system rank varying site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlabel('Site number')
-# plt.ylabel("System rank")
-# plt.show()
+number = 1
+# this specifically enforces spin up number being equal to spin down
+nelec = (number, number)
+# nelec = (number, 0)
+
+"""number of sites"""
+nx = int(2 * number)
+k = 0
+for p_delta in [phi_delta, -phi_delta]:
+    pre = np.pi + p_delta
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-phi_delta.npy' % (
+    nx, cycles, U, t, number, delta, field, F0, p_delta)
+    phi_original = np.load('./data/original/phi' + parameternames)
+    if k == 0:
+        plt.plot(phi_original, label='$F_0=\\pi+\\delta$')
+    else:
+        plt.plot(phi_original, label='$F_0=\\pi-\\delta$')
+    k += 1
+plt.legend()
+plt.show()
+
+k = 0
+for p_delta in [phi_delta, -phi_delta]:
+    pre = np.pi / 2 + p_delta
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-phi_delta.npy' % (
+    nx, cycles, U, t, number, delta, field, F0, p_delta)
+    J_field = np.load('./data/original/Jfield' + parameternames)
+    exact = np.gradient(J_field, delta)
+    # w, spec= har_spec.spectrum_welch(exact, delta)
+    w, spec = har_spec.spectrum_welch(J_field, delta)
+    if k == 0:
+        w *= 2. * np.pi / prop.field
+        plt.semilogy(w, spec, label='$F_0=\\pi+\\delta$')
+    else:
+        w *= 2. * np.pi / prop.field
+        plt.semilogy(w, spec, label='$F_0=\\pi-\\delta$')
+    k += 1
+xlines = [2 * i - 1 for i in range(1, 6)]
+for xc in xlines:
+    plt.axvline(x=xc, color='black', linestyle='dashed')
+axes = plt.gca()
+axes.set_xlim([0, 10])
+# axes.set_ylim([10 ** (-15), spec.max()])
+plt.legend()
+plt.xlabel('Harmonic Order')
+plt.ylabel('HHG spectra')
+
+plt.show()
+
+k = 0
+for p_delta in [phi_delta, -phi_delta]:
+    pre = np.pi / 2 + p_delta
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-phi_delta.npy' % (
+    nx, cycles, U, t, number, delta, field, F0, p_delta)
+    J_field = np.load('./data/original/Jfield' + parameternames)
+    exact = np.gradient(J_field, delta)
+    if k == 0:
+        plt.plot(J_field, label='$F_0=\\pi+\\delta$')
+    else:
+        plt.plot(J_field, label='$F_0=\\pi-\\delta$')
+    k += 1
+
+plt.legend()
+plt.show()

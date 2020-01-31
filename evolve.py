@@ -18,6 +18,21 @@ def ham1(lat, h, current_time, cycles):
     return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
 
 
+def ham_set_amplitude(pre, lat, h, current_time, cycles):
+    if lat.field == 0.:
+        phi = 0.
+    else:
+        phi = pre * (np.sin(lat.field * current_time / (2. * cycles)) ** 2.) * np.sin(
+            lat.field * current_time)
+    h_forwards = np.triu(h)
+    h_forwards[0, -1] = 0.0
+    h_forwards[-1, 0] = h[-1, 0]
+    h_backwards = np.tril(h)
+    h_backwards[-1, 0] = 0.0
+    h_backwards[0, -1] = h[0, -1]
+    return np.exp(1.j * phi) * h_forwards + np.exp(-1.j * phi) * h_backwards
+
+
 def ham_max(lat, h):
     if lat.field == 0.:
         phi = 0.
@@ -79,6 +94,17 @@ def RK4(lat, h, delta, current_time, psi, cycles):
     k2 = -1.j * delta * f(lat, ht, psi + 0.5 * k1)
     k3 = -1.j * delta * f(lat, ht, psi + 0.5 * k2)
     ht = ham1(lat, h, current_time + delta, cycles)
+    k4 = -1.j * delta * f(lat, ht, psi + k3)
+    return psi + (k1 + 2. * k2 + 2. * k3 + k4) / 6.
+
+
+def RK4_set_amplitude(pre, lat, h, delta, current_time, psi, cycles):
+    ht = ham_set_amplitude(pre, lat, h, current_time, cycles)
+    k1 = -1.j * delta * f(lat, ht, psi)
+    ht = ham_set_amplitude(pre, lat, h, current_time + 0.5 * delta, cycles)
+    k2 = -1.j * delta * f(lat, ht, psi + 0.5 * k1)
+    k3 = -1.j * delta * f(lat, ht, psi + 0.5 * k2)
+    ht = ham_set_amplitude(pre, lat, h, current_time + delta, cycles)
     k4 = -1.j * delta * f(lat, ht, psi + k3)
     return psi + (k1 + 2. * k2 + 2. * k3 + k4) / 6.
 

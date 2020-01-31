@@ -1,5 +1,4 @@
 import numpy as np
-import os
 import evolve as evolve
 import definition as harmonic
 import observable as observable
@@ -9,9 +8,6 @@ from scipy.integrate import ode
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
-threads = 1
-print("threads =%s" % threads)
-os.environ["OMP_NUM_THREADS"] = "%s" % threads
 # NOTE: time is inputted and plotted in terms of cycles, but the actual propagation happens in 'normal' time
 
 
@@ -31,31 +27,30 @@ J_field_cutfreq = []
 D_cutfreq = []
 Jalt = []
 
-number = 3
+number = 5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1 * t
-U_track = 0.1 * t
+U = 7 * t
+U_track = 0 * t
 cutoff = 40
-delta = 0.02
+delta = 0.05
 cycles = 10
 field = 32.9
 # field=25
 F0 = 10
 a = 4
-ascale = 1.5
+ascale = 1
 ascale_track = ascale
 scalefactor = 1
 parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
     nx, cycles, U, t, number, delta, field, F0)
-cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-    nx, cycles, U_track, t, number, delta, field, F0, ascale_track, scalefactor)
+fitparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-cutoff.npy' % (
+    nx, cycles, U, t, number, delta, field, F0, ascale_track, cutoff)
 # parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (4,cycles,U,t,2,delta,field,F0)
-phi_cut = np.load('./data/fitted/phi' + cutparameternames)
 #
 # plt.plot(phi_cut)
 # plt.show()
@@ -152,10 +147,10 @@ while r.successful() and r.t < time / lat.freq:
     # error.append(newerror)
 del phi_reconstruct[0:2]
 
-np.save('./data/fitted/Jfieldalt' + cutparameternames, Jalt)
-np.save('./data/fitted/Jfield' + cutparameternames, J_field_cutfreq)
-np.save('./data/fitted/phi_recon' + cutparameternames, phi_reconstruct)
-np.save('./data/fitted/doublon' + cutparameternames, D_cutfreq)
+np.save('./data/cutfreqs/Jfieldalt' + cutparameternames, Jalt)
+np.save('./data/cutfreqs/Jfield' + cutparameternames, J_field_cutfreq)
+np.save('./data/cutfreqs/phi_recon' + cutparameternames, phi_reconstruct)
+np.save('./data/cutfreqs/doublon' + cutparameternames, D_cutfreq)
 
 # plt.plot(phi_original)
 # plt.ylabel('$\\Phi$')
