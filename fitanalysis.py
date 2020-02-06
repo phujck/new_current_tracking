@@ -144,20 +144,22 @@ params = {
 plt.rcParams.update(params)
 print(plt.rcParams.keys())
 # Load parameters and data. 2 suffix is for loading in a different simulation for comparison
-number = 3
-number2 = 3
+number = 5
+number2 = 5
 nelec = (number, number)
-nx = 6
-nx2 = 6
+nx = 10
+nx2 = 10
 ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0 * t
-U2 = 0 * t
-delta = 0.05
+U = 1 * t
+U2 = 1 * t
+U_track = U
+U_track2 = U2
+delta = 0.02
 delta1 = delta
-delta2 = 0.05
+delta2 = 0.02
 cycles = 10
 cycles2 = 10
 # field= 32.9
@@ -167,33 +169,44 @@ F0 = 10
 a = 4
 scalefactor = 1
 scalefactor2 = 1
-ascale = 1
-ascale2 = 1
-
+ascale = 9
+ascale2 = 10
+degree = 3
 """Turn this to True in order to load tracking files"""
-fitting = False
+Tracking = True
 
 prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
 prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
 print(prop.field)
 print(prop2.field)
-if fitting:
+if Tracking:
     """Notice the U's have been swapped on the presumption of tracking the _other_ system."""
-    prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t, F0=F0, a=ascale * a,
+    prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U_track, t=t, F0=F0, a=ascale * a,
                           bc='pbc')
-    prop_track2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=ascale2 * a,
+    prop_track2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U_track2, t=t, F0=F0, a=ascale2 * a,
                            bc='pbc')
     delta_track = prop_track.freq * delta / prop.freq
     delta_track2 = prop_track2.freq * delta2 / prop.freq
-    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor)
+    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, U_track, t, number, delta, field, F0, ascale, scalefactor, degree)
 
-    J_field_track = np.load('./data/tracking/Jfield' + newparameternames) / scalefactor
-    phi_track = np.load('./data/tracking/phi' + newparameternames)
-    neighbour_track = np.load('./data/tracking/neighbour' + newparameternames)
-    two_body_track = np.load('./data/tracking/twobody' + newparameternames)
+    J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
     t_track = np.linspace(0.0, cycles, len(J_field_track))
-    D_track = np.load('./data/tracking/double' + newparameternames)
+    # length= len(J_field_track)/10
+    # J_field_track=J_field_track[int(1.4*length):int(9*length)]
+    # t_track = np.linspace(1.4, 9, len(J_field_track))
+    phi_track = np.load('./data/fitted/phi' + newparameternames)
+
+    newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, U_track2, t, number, delta, field, F0, ascale2, scalefactor, degree)
+
+    J_field_track2 = np.load('./data/fitted/Jfield' + newparameternames2) / scalefactor
+    t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
+
+    # length2 = len(J_field_track2) / 10
+    # J_field_track2 = J_field_track2[int(1.4 * length2):int(8.5 * length2)]
+    # t_track2 = np.linspace(1.4, 8.5, len(J_field_track2))
+    phi_track2 = np.load('./data/fitted/phi' + newparameternames2)
 
 # load files
 parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
@@ -221,141 +234,96 @@ D2 = np.load('./data/original/double' + parameternames2)
 times = np.linspace(0.0, cycles, len(J_field))
 times2 = np.linspace(0.0, cycles, len(J_field2))
 
-rank_test = np.load('./data/original/ranktestcurrent.npy')
-plt.plot(rank_test)
-plt.title('rank test')
+plt.plot(times, J_field)
+plt.plot(times, (nx / nx2) * J_field2)
 plt.show()
-"""Plot currents"""
+method = 'welch'
+min_spec = 12
+max_harm = 60
+gabor = 'fL'
 
-plt.plot([6, 8, 10], [82, 245, 1988])
-plt.show()
+zeroparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+    nx, cycles, 0.0, t, number, delta, field, F0)
+ref_J = np.load('./data/original/Jfield' + zeroparameternames) / scalefactor
+times = np.linspace(0.0, cycles, len(ref_J))
 
 plt.subplot(211)
-plt.plot(times, J_field, label='$\\frac{U}{t_0}=0$')
+plt.plot(times, J_field, label='$J(t)$')
 if Tracking:
-    plt.plot(t_track * prop_track.freq / prop.freq, J_field_track, linestyle='dashed',
-             label='Tracked Current')
+    plt.plot(t_track * prop_track.freq / prop.freq, J_field_track,
+             label='$\\bar{J}_T(t)$', color='red')
 # plt.xlabel('Time [cycles]')
+plt.plot(times, ref_J, linestyle='dashed', label='Target', color='black')
 plt.ylabel('$J(t)$')
-# plt.legend(loc='upper right')
+plt.xlabel('Time [cycles]')
+plt.legend(loc='upper right')
 plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.08), fontsize=25)
 
 plt.subplot(212)
-plt.plot(times2, J_field2, label='\\frac{U}{t_0}=7')
+exact = np.gradient(J_field, delta)
+w, spec = har_spec.spectrum_welch(exact, delta1)
+w *= 2. * np.pi / prop.field
+plt.semilogy(w, spec, label='$J(t)$')
+exact = np.gradient(J_field_track, delta_track)
+w, spec = har_spec.spectrum_welch(exact, delta1)
+w *= 2. * np.pi / prop.field
+spec[int(len(spec) / 100):] = spec[int(len(spec) / 100):] / 5
+plt.semilogy(w, spec, label='$\\bar{J}_T(t)$', color='red')
+
+exact = np.gradient(ref_J, delta)
+w, spec = har_spec.spectrum_welch(exact, delta1)
+w *= 2. * np.pi / prop.field
+plt.semilogy(w, spec, linestyle='dashed', label='Target', color='black')
+axes = plt.gca()
+axes.set_xlim([0, max_harm])
+axes.set_ylim([10 ** (-min_spec), spec.max()])
+xlines = [2 * i - 1 for i in range(1, 6)]
+
+for xc in xlines:
+    plt.axvline(x=xc, color='black', linestyle='dashed')
+plt.xlabel('Harmonic Order')
+plt.ylabel('HHG spectra')
+# plt.legend(loc='upper right')
+plt.annotate('b)', xy=(0.3, np.max(exact) - 0.05), fontsize=25)
+plt.show()
+
+plt.subplot(211)
+plt.plot(times, J_field, label='$J(t)$')
+if Tracking:
+    plt.plot(t_track * prop_track.freq / prop.freq, J_field_track, linestyle='dashed',
+             label='$\\bar{J}_T(t)$', color='red')
+# plt.xlabel('Time [cycles]')
+plt.plot(times, ref_J, linestyle='-.', label='Target', color='black')
+plt.ylabel('$J(t)$')
+plt.legend(loc='upper right')
+plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.08), fontsize=25)
+
+plt.subplot(212)
+plt.plot(times2, J_field2, label='$J(t)$')
 if Tracking:
     plt.plot(t_track2, J_field_track2, linestyle='dashed',
-             label='Tracked current')
+             label='Tracked current', color='red')
+plt.plot(times, ref_J, linestyle='-.', label='Target', color='black')
 plt.xlabel('Time [cycles]')
 plt.ylabel('$J(t)$')
 plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=25)
 plt.show()
+norm1 = np.linalg.norm(J_field2 - ref_J, ord=2)
+norm2 = np.linalg.norm(ref_J - J_field_track2, ord=2)
+print(norm1)
+print(norm2)
 
-diff_track = phi_track - theta
-J_grad_track = -2. * prop_track.a * prop_track.t * np.gradient(phi_track, delta_track) * np.abs(
-    neighbour_track) * np.cos(diff_track)
 exact_track = np.gradient(J_field_track, delta_track)
 exact_track2 = np.gradient(J_field_track2, delta_track2)
 
-print(max(exact) / max(exact_track))
-# eq 32 is the Ehrenfest theorem from direct differentiation of J expectation
-eq32_track = (J_grad_track - prop_track.a * prop_track.t * prop_track.U * extra_track) / scalefactor
-print(max(eq32) / max(eq32_track))
-# eq33 works in terms of the nearest neighbour expectation. It should give the same result as eq32,
-# but it's vital that the angles have their discontinuities removed first.
-
-eq33_track = (J_grad_track + 2. * prop_track.a * prop_track.t * (
-        np.gradient(theta, delta_track) * np.abs(neighbour_track) * np.cos(
-    diff_track) - np.gradient(
-    np.abs(neighbour_track), delta_track) * np.sin(diff_track))) / scalefactor
-plt.subplot(311)
-# plt.plot(t, eq32, label='original')
-plt.plot(t_track, exact_track,
-         label='original')
-# plt.plot(t_track[:-5], eq33_track[:-5], linestyle='-.',
-#          label='analytical')
-plt.plot(t_track[:-5], eq32_track[:-5], linestyle='dashed',
-         label='tracked')
-plt.ylabel('$\\frac{{\\rm d}J}{{\\rm d}t}$')
-plt.legend()  #
-prop = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
-prop2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t2, F0=F0, a=a, bc='pbc')
-print(prop.field)
-print(prop2.field)
-if Tracking:
-    """Notice the U's have been swapped on the presumption of tracking the _other_ system."""
-    prop_track = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U2, t=t, F0=F0, a=ascale * a,
-                          bc='pbc')
-    prop_track2 = hams.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=ascale2 * a,
-                           bc='pbc')
-    delta_track = prop_track.freq * delta / prop.freq
-    delta_track2 = prop_track2.freq * delta2 / prop.freq
-    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor)
-
-    J_field_track = np.load('./data/tracking/Jfield' + newparameternames) / scalefactor
-    phi_track = np.load('./data/tracking/phi' + newparameternames)
-    neighbour_track = np.load('./data/tracking/neighbour' + newparameternames)
-    two_body_track = np.load('./data/tracking/twobody' + newparameternames)
-    t_track = np.linspace(0.0, cycles, len(J_field_track))
-    D_track = np.load('./data/tracking/double' + newparameternames)
-
-    newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-        nx, cycles2, U2, t2, number2, delta2, field, F0, ascale2, scalefactor2)
-
-    J_field_track2 = np.load('./data/tracking/Jfield' + newparameternames2) / scalefactor2
-    phi_track2 = np.load('./data/tracking/phi' + newparameternames2)
-    neighbour_track2 = np.load('./data/tracking/neighbour' + newparameternames2)
-    two_body_track2 = np.load('./data/tracking/twobody' + newparameternames2)
-    t_track2 = np.linspace(0.0, cycles, len(J_field_track2))
-    D_track2 = np.load('./data/tracking/double' + newparameternames2)
-
-    times_track = np.linspace(0.0, cycles, len(J_field_track))
-    times_track2 = np.linspace(0.0, cycles, len(J_field_track2))
-
-# load files
-parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-    nx, cycles, U, t, number, delta, field, F0)
-newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
-    nx, cycles, U, t, number, delta, field, F0, ascale)
-J_field = np.load('./data/original/Jfield' + parameternames)
-phi_original = np.load('./data/original/phi' + parameternames)
-phi_reconstruct = np.load('./data/original/phirecon' + parameternames)
-neighbour = np.load('./data/original/neighbour' + parameternames)
-
-two_body = np.load('./data/original/twobody' + parameternames)
-D = np.load('./data/original/double' + parameternames)
-
-parameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-    nx2, cycles2, U2, t2, number2, delta2, field2, F0)
-newparameternames2 = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale.npy' % (
-    nx2, cycles2, U2, t2, number2, delta2, field2, F0, ascale2)
-J_field2 = np.load('./data/original/Jfield' + parameternames2)
-two_body2 = np.load('./data/original/twobody' + parameternames2)
-neighbour2 = np.load('./data/original/neighbour' + parameternames2)
-phi_original2 = np.load('./data/original/phi' + parameternames2)
-D2 = np.load('./data/original/double' + parameternames2)
-
+exact = np.gradient(J_field, delta)
+# exact2 = np.gradient(J_field2, delta2)
 times = np.linspace(0.0, cycles, len(J_field))
 times2 = np.linspace(0.0, cycles, len(J_field2))
 
-plt.subplot(312)
-plt.plot(times, np.abs(neighbour), label='original')
-plt.plot(t_track, np.abs(neighbour_track), linestyle='dashed', label='tracked')
-plt.ylabel('$R(\psi)$')
-
-plt.subplot(313)
-plt.plot(times, np.abs(two_body), label='original')
-plt.plot(t_track, np.abs(two_body_track), linestyle='dashed')
-plt.ylabel('$C(\psi)$')
-plt.xlabel('Time [cycles]')
-
-plt.show()
-
+exact2 = np.gradient(J_field_track, delta_track)
+# exact2= np.gradient(J_field_track2, delta_track2)
 """Plotting spectrum."""
-method = 'welch'
-min_spec = 15
-max_harm = 60
-gabor = 'fL'
 
 spec = np.zeros((FT_count(len(J_field)), 2))
 if method == 'welch':
@@ -373,3 +341,191 @@ else:
 w *= 2. * np.pi / prop.field
 w2 *= 2. * np.pi / prop.field
 plot_spectra([prop.U, prop2.U], w, spec, min_spec, max_harm)
+#
+
+ascales = [1.5, 5, 10]
+Us = [0.1, 0.5, 1]
+normsU = []
+degree = 6
+for j in range(len(ascales)):
+    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, Us[j] * t, t, number, delta, field, F0, ascales[j], scalefactor, degree)
+    J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+        nx, cycles, Us[j] * t, t, number, delta, field, F0)
+    J_field = np.load('./data/original/Jfield' + parameternames)
+    # norms.append(np.linalg.norm(ref_J-J_field_track,ord=2)/np.linalg.norm(ref_J-J_field,ord=2))
+    normsU.append(np.linalg.norm(ref_J - J_field_track, ord=2))
+    exact = np.gradient(J_field_track, delta_track)
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    w *= 2. * np.pi / prop.field
+    plt.semilogy(w, spec, label='$\\frac{U}{t_0}=$%s' % (Us[j]))
+
+exact = np.gradient(ref_J, delta)
+w, spec = har_spec.spectrum_welch(exact, delta1)
+w *= 2. * np.pi / prop.field
+plt.semilogy(w, spec, linestyle='dashed', label='Target Spectra', color='black')
+axes = plt.gca()
+axes.set_xlim([0, max_harm])
+axes.set_ylim([10 ** (-min_spec), spec.max()])
+xlines = [2 * i - 1 for i in range(1, 6)]
+
+for xc in xlines:
+    plt.axvline(x=xc, color='black', linestyle='dashed')
+plt.xlabel('Harmonic Order')
+plt.ylabel('HHG spectra')
+plt.legend(loc='upper right')
+plt.show()
+
+plt.plot(Us, normsU)
+plt.show()
+
+# deltas=[0.02,0.005]
+#
+#
+# for j in range(len(deltas)):
+#     ascale=1.5
+#     U=0.1*t
+#     newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+#         nx, cycles, U, t, number, deltas[j], field, F0, ascale, scalefactor,degree)
+#     J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
+#     delta_track=deltas[j]
+#     exact=np.gradient(J_field_track,delta_track)
+#     w, spec = har_spec.spectrum_welch(exact, delta_track)
+#     w *= 2. * np.pi / prop.field
+#     plt.semilogy(w, spec, label='$\\Delta=$%s' % (deltas[j]))
+#
+# exact = np.gradient(ref_J, delta)
+# w, spec = har_spec.spectrum_welch(exact, delta1)
+# w *= 2. * np.pi / prop.field
+# plt.semilogy(w, spec, linestyle='dashed', label='Target Spectra',color='black' )
+# axes = plt.gca()
+# axes.set_xlim([0, max_harm])
+# axes.set_ylim([10 ** (-min_spec), spec.max()])
+# xlines = [2 * i - 1 for i in range(1, 6)]
+#
+# for xc in xlines:
+#     plt.axvline(x=xc, color='black', linestyle='dashed')
+# plt.xlabel('Harmonic Order')
+# plt.ylabel('HHG spectra')
+# plt.legend(loc='upper right')
+# plt.show()
+
+# ascales=[1.1,2.5,3.3]
+# Us=[0.1,0.5,1]
+#
+# for j in range(len(ascales)):
+#     newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
+#         nx, cycles, Us[j]*t, t, number, delta, field, F0, ascales[j], scalefactor)
+#     J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
+#
+#     exact=np.gradient(J_field_track,delta_track)
+#     w, spec = har_spec.spectrum_welch(exact, delta1)
+#     w *= 2. * np.pi / prop.field
+#     plt.semilogy(w, spec, label='$\\frac{U}{t_0}=$%s' % (Us[j]))
+#
+# exact = np.gradient(J_field, delta)
+# w, spec = har_spec.spectrum_welch(exact, delta1)
+# w *= 2. * np.pi / prop.field
+# plt.semilogy(w, spec, linestyle='dashed', label='Target Spectra',color='black' )
+# axes = plt.gca()
+# axes.set_xlim([0, max_harm])
+# axes.set_ylim([10 ** (-min_spec), spec.max()])
+# xlines = [2 * i - 1 for i in range(1, 6)]
+#
+# for xc in xlines:
+#     plt.axvline(x=xc, color='black', linestyle='dashed')
+# plt.xlabel('Harmonic Order')
+# plt.ylabel('HHG spectra')
+# plt.legend(loc='upper right')
+# plt.show()
+#
+
+degrees = [1, 2, 3, 4, 6, 8, 10]
+norms = []
+
+for j in range(len(degrees)):
+    newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, 1 * t, t, number, delta, field, F0, ascale, scalefactor, degrees[j])
+    J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
+    norms.append(np.linalg.norm(ref_J - J_field_track, ord=1))
+    if degrees[j] == 2:
+        lowdegree = J_field_track
+    if degrees[j] == 10:
+        highdegree = J_field_track
+    exact = np.gradient(J_field_track, delta_track)
+    w, spec = har_spec.spectrum_welch(exact, delta1)
+    w *= 2. * np.pi / prop.field
+    plt.semilogy(w, spec, label='Degree =%s' % (degrees[j]))
+
+exact = np.gradient(ref_J, delta)
+w, spec = har_spec.spectrum_welch(exact, delta1)
+w *= 2. * np.pi / prop.field
+plt.semilogy(w, spec, linestyle='dashed', label='Target Spectra', color='black')
+axes = plt.gca()
+axes.set_xlim([0, max_harm])
+axes.set_ylim([10 ** (-min_spec), spec.max()])
+xlines = [2 * i - 1 for i in range(1, 6)]
+
+for xc in xlines:
+    plt.axvline(x=xc, color='black', linestyle='dashed')
+plt.xlabel('Harmonic Order')
+plt.ylabel('HHG spectra')
+plt.legend(loc='upper right')
+plt.title('$\\frac{U}{t_0}=0.1$')
+plt.show()
+plt.plot(degrees, norms)
+plt.show()
+# for j in range(len(degrees)):
+#     ascale=3.3
+#     newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+#         nx, cycles, 1*t, t, number, delta, field, F0, ascale, scalefactor,degrees[j])
+#     J_field_track = np.load('./data/fitted/Jfield' + newparameternames) / scalefactor
+#     if degrees[j]==2:
+#         lowdegree=J_field_track
+#     if degrees[j]==20:
+#         highdegree=J_field_track
+#     exact=np.gradient(J_field_track,delta_track)
+#     w, spec = har_spec.spectrum_welch(exact, delta1)
+#     w *= 2. * np.pi / prop.field
+#     plt.semilogy(w, spec, label='Degree =%s' % (degrees[j]))
+#
+# exact = np.gradient(J_field, delta)
+# w, spec = har_spec.spectrum_welch(exact, delta1)
+# w *= 2. * np.pi / prop.field
+# plt.semilogy(w, spec, linestyle='dashed', label='Target Spectra',color='black' )
+# axes = plt.gca()
+# axes.set_xlim([0, max_harm])
+# axes.set_ylim([10 ** (-min_spec), spec.max()])
+# xlines = [2 * i - 1 for i in range(1, 6)]
+#
+# for xc in xlines:
+#     plt.axvline(x=xc, color='black', linestyle='dashed')
+# plt.xlabel('Harmonic Order')
+# plt.ylabel('HHG spectra')
+# plt.legend(loc='upper right')
+# plt.title('$\\frac{U}{t_0}=1$')
+# plt.show()
+#
+
+J_field = ref_J
+J_field2 = ref_J
+plt.subplot(211)
+plt.plot(times, J_field, label='$\\frac{U}{t_0}=0$')
+if Tracking:
+    plt.plot(t_track * prop_track.freq / prop.freq, lowdegree, linestyle='dashed',
+             label='Tracked Current')
+# plt.xlabel('Time [cycles]')
+plt.ylabel('$J(t)$')
+# plt.legend(loc='upper right')
+plt.annotate('a)', xy=(0.3, np.max(J_field) - 0.08), fontsize=25)
+
+plt.subplot(212)
+plt.plot(times2, J_field2, label='\\frac{U}{t_0}=')
+if Tracking:
+    plt.plot(t_track2, highdegree, linestyle='dashed',
+             label='Tracked current')
+plt.xlabel('Time [cycles]')
+plt.ylabel('$J(t)$')
+plt.annotate('b)', xy=(0.3, np.max(J_field2) - 0.05), fontsize=25)
+plt.show()

@@ -1,5 +1,5 @@
 import os
-threads = 1
+threads = 3
 print("threads =%s" %threads)
 os.environ["OMP_NUM_THREADS"] = "%s" % threads
 import numpy as np
@@ -77,7 +77,7 @@ print(psutil.virtual_memory())
 print('available memory: %s GB' % (get_memory() / 1024 / 1024))
 
 """Number of electrons"""
-number = 3
+number = 5
 # this specifically enforces spin up number being equal to spin down
 nelec = (number, number)
 # nelec = (number, 0)
@@ -89,7 +89,7 @@ ny = 0
 
 """System Parameters"""
 t = 0.52
-U = 0.5 * t
+U = 0 * t
 field = 32.9
 F0=10
 # F0=0
@@ -97,7 +97,7 @@ a = 4
 cycles = 10
 
 """Timestep used"""
-delta = 0.02
+delta = 0.01
 
 """these lists get popuproped with the appropriate expectations"""
 neighbour = []

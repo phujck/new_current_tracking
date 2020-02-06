@@ -1,6 +1,6 @@
 import os
 
-threads = 1
+threads = 3
 print("threads =%s" % threads)
 os.environ["OMP_NUM_THREADS"] = "%s" % threads
 import numpy as np
@@ -35,18 +35,18 @@ error=[]
 J_field_track=[]
 D_track=[]
 
-number=3
+number = 5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
 """U is the the ORIGINAL data you want to track"""
-U = 0 * t
+U = 1 * t
 
 """U_track is the NEW system parameter you want to do tracking in"""
-U_track = 0.5 * t
+U_track = 1.5 * t
 delta = 0.02
 cycles = 10
 field = 32.9
@@ -55,19 +55,24 @@ F0 = 10
 a = 4
 
 # This scales the lattice parameter
-ascale = 3
+ascale = 1
 
 # this scales the input current.
-scalefactor=1
+scalefactor = 1 / 1.5
 
 """Used for LOADING the expectation you want to track"""
-parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (nx,cycles,U,t,number,delta,field,F0)
+number_original = number
+nx_original = nx
+delta = 0.02
+parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+nx_original, cycles, U, t, number_original, delta, field, F0)
 
+delta = 0.02
 """SAVES the tracked simulation."""
 newparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-nx, cycles, U_track, t, number, delta, field, F0, ascale, scalefactor)
+    nx, cycles, U_track, t, number, delta, field, F0, ascale, scalefactor)
 
-J_field=np.load('./data/original/Jfield'+parameternames)
+J_field = np.load('./data/original/Jfield' + parameternames)
 # D=np.load('./data/original/double'+parameternames)
 # delta=0.01
 # lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U, t=t, F0=F0, a=a, bc='pbc')
@@ -79,7 +84,8 @@ time=cycles
 
 """Sets up the system in which we do tracking. Note that the lattice parameter is scaled by ascale"""
 lat = harmonic.hhg(field=field, nup=number, ndown=number, nx=nx, ny=0, U=U_track, t=t, F0=F0, a=ascale*a, bc='pbc')
-times = np.linspace(0.0, cycles/lat.freq, len(J_field))
+times = np.linspace(0.0, cycles / lat.freq, len(J_field))
+J_field = J_field + np.max(J_field) * np.sin(9 * lat.field * times) / 10
 # times = np.linspace(0.0, cycles, len(D))
 print('\n')
 print(vars(lat))
@@ -160,12 +166,14 @@ del phi_reconstruct[0:2]
 
 """Note that this is now saved with the LOADED parameters, not the ones used in tracking"""
 np.save('./data/tracking/double' + newparameternames, D_track)
-np.save('./data/tracking/Jfield'+newparameternames,J_field_track)
-np.save('./data/tracking/phi'+newparameternames,phi_original)
-np.save('./data/tracking/neighbour'+newparameternames,neighbour)
-np.save('./data/tracking/twobody'+newparameternames,two_body)
+np.save('./data/tracking/Jfield' + newparameternames, J_field_track)
+np.save('./data/tracking/phi' + newparameternames, phi_original)
+np.save('./data/tracking/neighbour' + newparameternames, neighbour)
+np.save('./data/tracking/twobody' + newparameternames, two_body)
+
+# np.save('./data/tracking/Jfieldspecial'+newparameternames,J_field_track)
+# np.save('./data/tracking/phispecial'+newparameternames,phi_original)
 
 
-
-#plot_observables(lat, delta=0.02, time=5., K=.1)
+# plot_observables(lat, delta=0.02, time=5., K=.1)
 # spectra(lat, initial=None, delta=delta, time=cycles, method='welch', min_spec=7, max_harm=50, gabor='fL')

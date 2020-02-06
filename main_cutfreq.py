@@ -1,5 +1,9 @@
-import numpy as np
 import os
+
+threads = 2
+print("threads =%s" % threads)
+os.environ["OMP_NUM_THREADS"] = "%s" % threads
+import numpy as np
 import evolve as evolve
 import definition as harmonic
 import observable as observable
@@ -9,14 +13,12 @@ from scipy.integrate import ode
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
-threads = 1
-print("threads =%s" % threads)
-os.environ["OMP_NUM_THREADS"] = "%s" % threads
 # NOTE: time is inputted and plotted in terms of cycles, but the actual propagation happens in 'normal' time
 
 
 # input units: THz (field), eV (t, U), MV/cm (peak amplitude, F0), Angstroms (lattice cst, a)
 # they're then converted to t-normalised atomic units. bc='pbc' for periodic and 'abc' for antiperiodic
+
 
 
 neighbour = []
@@ -31,15 +33,15 @@ J_field_cutfreq = []
 D_cutfreq = []
 Jalt = []
 
-number = 3
+number = 5
 nelec = (number, number)
-nx = 6
+nx = 10
 ny = 0
 t = 0.52
 # t=1.91
 # t=1
-U = 0.1 * t
-U_track = 0.1 * t
+U = 1 * t
+U_track = U
 cutoff = 40
 delta = 0.02
 cycles = 10
@@ -47,13 +49,14 @@ field = 32.9
 # field=25
 F0 = 10
 a = 4
-ascale = 1.5
+ascale = 9
 ascale_track = ascale
 scalefactor = 1
+degree = 3
 parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
     nx, cycles, U, t, number, delta, field, F0)
-cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor.npy' % (
-    nx, cycles, U_track, t, number, delta, field, F0, ascale_track, scalefactor)
+cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+    nx, cycles, U_track, t, number, delta, field, F0, ascale_track, scalefactor, degree)
 # parameternames='-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (4,cycles,U,t,2,delta,field,F0)
 phi_cut = np.load('./data/fitted/phi' + cutparameternames)
 #
