@@ -174,7 +174,7 @@ t1 = t
 t2 = 0.52
 U = 0 * t
 U2 = U
-degree = 4
+degree = 3
 delta = 0.02
 delta1 = delta
 delta2 = 0.02
@@ -293,186 +293,363 @@ prefactor = (lat.a * lat.F0 / lat.field)
 
 # phi_original=ascale*phi_original
 # phi_track=phi_track/ascale
-
-envelope = np.abs(hilbert(phi_track - phi_original))
-# envelope=hilbert(phi_track)
-mean, std = norm.fit(envelope)
-
-
-def gauss_fit(time, prefactor, mean, std, prefactor_sin, pre2):
-    f = prefactor * np.exp(-(((time - mean) / std) ** 2)) * np.sin(pre2 * np.pi * time / cycles) ** 2
-    # f = (pre2)*np.sin(np.pi*prefactor_sin*time/cycles)**2
-    return f
+if U == 0 * t:
+    envelope = np.abs(hilbert(phi_track))
+    # envelope=hilbert(phi_track)
+    mean, std = norm.fit(envelope)
 
 
-point_times = []
-point_envelope = []
-jump = int(len(t_track) / cycles)
-
-for j in range(cycles):
-    point_times.append(t_track[int(int(0.75 * jump + j * jump))])
-    point_envelope.append((phi_track - phi_original)[int(int(0.75 * jump + j * jump))])
-plt.scatter(point_times, point_envelope)
-plt.plot(t_track, phi_track - phi_original)
-plt.show()
-
-# popt, pcov = curve_fit(gauss_fit, t_track[100:-100], envelope[100:-100], maxfev=40000)
-popt, pcov = curve_fit(gauss_fit, point_times, point_envelope, method='trf', maxfev=40000)
-best_env = gauss_fit(t_track, *popt)
-plt.plot(t_track, best_env, label='best fit')
-plt.plot(t_track, -best_env, label='best fit')
-print(popt)
-# plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
-plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
-plt.plot(t_track, phi_track - phi_original, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
-# plt.plot(t_track, envelope-best_env, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
-# plt.plot(t_track, stretchsin, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
-
-plt.show()
-
-env_func = interp1d(t_track, best_env, fill_value=0, bounds_error=False, kind='cubic')
+    def gauss_fit(time, prefactor, mean, std, prefactor_sin, pre2):
+        f = prefactor * np.exp(-(((time - mean) / std) ** 2)) * np.sin(pre2 * np.pi * (time) / cycles) ** 2
+        # f = (pre2)*np.sin(np.pi*prefactor_sin*time/cycles)**2
+        return f
 
 
-# env_func = interp1d(t_track, envelope, fill_value=0, bounds_error=False, kind='cubic')
+    point_times = []
+    point_envelope = []
+    jump = int(len(t_track) / cycles)
+
+    for j in range(int(cycles / 2)):
+        point_times.append(t_track[int(int(0.75 * jump + j * jump))])
+        point_envelope.append((phi_track)[int(int(0.75 * jump + j * jump))])
+    plt.scatter(point_times, point_envelope)
+    plt.plot(t_track, phi_track)
+    plt.show()
+
+    # popt, pcov = curve_fit(gauss_fit, t_track[100:-100], envelope[100:-100], maxfev=40000)
+    popt, pcov = curve_fit(gauss_fit, point_times, point_envelope, method='trf', maxfev=40000)
+    best_env = gauss_fit(t_track, *popt)
+    plt.plot(t_track, best_env, label='best fit')
+    plt.plot(t_track, -best_env, label='best fit')
+    print(popt)
+    # plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
+    plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    plt.plot(t_track, phi_track, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # plt.plot(t_track, envelope-best_env, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # plt.plot(t_track, stretchsin, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+
+    plt.show()
+
+    env_func = interp1d(t_track, best_env, fill_value=0, bounds_error=False, kind='cubic')
 
 
-# p0=np.zeros(3)
-# p0[0]=np.amax(phi_track)
-# p0[1]=prop_track.field
-# p0=np.random.randint(np.pi,size=6)
-# chirp = (phi_track-phi_original)/(best_env)
-# chirp /= chirp.max()
-# chirp = np.arcsin(chirp)
-# for j in range(1, len(chirp)):
-#     if chirp[j] - chirp[j - 1] > np.pi:
-#         chirp[j:] = chirp[j:] - 2 * np.pi
-#     if chirp[j] - chirp[j - 1] < -np.pi:
-#         chirp[j:] = chirp[j:] + 2 * np.pi
+    # env_func = interp1d(t_track, envelope, fill_value=0, bounds_error=False, kind='cubic')
 
-# plt.plot(t_track,chirp)
-# plt.show()
+    # p0=np.zeros(3)
+    # p0[0]=np.amax(phi_track)
+    # p0[1]=prop_track.field
+    # p0=np.random.randint(np.pi,size=6)
+    # chirp = (phi_track-phi_original)/(best_env)
+    # chirp /= chirp.max()
+    # chirp = np.arcsin(chirp)
+    # for j in range(1, len(chirp)):
+    #     if chirp[j] - chirp[j - 1] > np.pi:
+    #         chirp[j:] = chirp[j:] - 2 * np.pi
+    #     if chirp[j] - chirp[j - 1] < -np.pi:
+    #         chirp[j:] = chirp[j:] + 2 * np.pi
 
-def phi_fit(current_time, *params):
-    f = len(params)
-    prefactors = []
-    omegas = []
-    phases = []
-    chirps = []
-    for j in range(f):
-        if j < int(f / 4):
-            # print(params[j])
-            prefactors.append(params[j])
-        elif j < int(2 * f / 4):
-            omegas.append(params[j])
-        elif j < int(3 * f / 4):
-            phases.append(params[j])
+    # plt.plot(t_track,chirp)
+    # plt.show()
+
+    def phi_fit(current_time, *params):
+        f = len(params)
+        prefactors = []
+        omegas = []
+        phases = []
+        chirps = []
+        for j in range(f):
+            if j < int(f / 4):
+                # print(params[j])
+                prefactors.append(params[j])
+            elif j < int(2 * f / 4):
+                omegas.append(params[j])
+            elif j < int(3 * f / 4):
+                phases.append(params[j])
+            else:
+                chirps.append(params[j])
+        k = 0
+        current_time = current_time / prop_track.freq
+        for j in range(int(f / 4)):
+            # print('success')
+            k += prefactors[j] * np.sin((omegas[j] + chirps[j] * current_time) * current_time - phases[j])
+            # k += (prefactors[j]+chirps[j] * current_time) * np.sin((omegas[j]  * current_time - phases[j]))
+            # k += prefactors[j] * np.sin(omegas[j] * current_time - phases[j])
+            # k += prefactors[j] * np.sin((omegas[j]) * current_time - phases[j])* (np.sin((prop_track.field+chirps[j]*current_time) * current_time / (2 * cycles)))
+        phi = k * env_func(current_time * prop_track.freq)
+        # phi = k * np.sin(chirps[j]*np.pi*current_time*prop_track.freq/cycles)**2
+
+        return phi
+
+
+    p0 = np.zeros(degree * 4)
+    k = 1
+    for j in range(len(p0)):
+        if j < int(len(p0) / 4):
+            p0[j] = (np.pi / 2) / int(len(p0) / 4)
+            p0[-j] = k * prop_track.field
+        elif j < int(2 * len(p0) / 4):
+            if k == 1:
+                p0[j] = 0
+            p0[j] = k * prop_track.field
+            k += 2
         else:
-            chirps.append(params[j])
-    k = 0
-    current_time = current_time / prop_track.freq
-    for j in range(int(f / 4)):
-        # print('success')
-        k += prefactors[j] * np.sin((omegas[j] + chirps[j] * current_time) * current_time - phases[j])
-        # k += (prefactors[j]+chirps[j] * current_time) * np.sin((omegas[j]  * current_time - phases[j]))
-        # k += prefactors[j] * np.sin(omegas[j] * current_time - phases[j])
-        # k += prefactors[j] * np.sin((omegas[j]) * current_time - phases[j])* (np.sin((prop_track.field+chirps[j]*current_time) * current_time / (2 * cycles)))
-    phi = k * env_func(current_time * prop_track.freq)
-    # phi = k * np.sin(chirps[j]*np.pi*current_time*prop_track.freq/cycles)**2
-
-    return phi
-
-p0 = np.zeros(degree * 4)
-k = 1
-for j in range(len(p0)):
-    if j < int(len(p0) / 4):
-        p0[j] = (np.pi / 2) / int(len(p0) / 4)
-        p0[-j] = k * prop_track.field
-    elif j < int(2 * len(p0) / 4):
-        if k == 1:
             p0[j] = 0
-        p0[j] = k * prop_track.field
-        k += 2
-    else:
-        p0[j] = 0
-# degree=2
-# pperfect=np.zeros(degree*4)
-# bestfits=[]
-# next_phi = phi_track - ascale * phi_original
-# for k in range(degree):
-# #     envelope= np.abs(hilbert(next_phi))
-# #     poptenv, pwhatevs = curve_fit(gauss_fit, t_track, envelope, maxfev=40000)
-# #     best_env = gauss_fit(t_track, *poptenv)
-# #     plt.plot(t_track, best_env, label='best fit')
-# #     plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
-# #     plt.show()
-#     p0 = np.zeros(4)
-#     p0[0]=max(next_phi)
-#     p0[1]=(2*k+1)*prop_track.field
-#     p0[2]= 0
-#     p0[3]= 1
-#     popt, pcov = curve_fit(phi_fit, t_track, (next_phi), p0=p0, maxfev=40000)
-#     best_fit=phi_fit(t_track, *popt)
-#     bestfits.append(best_fit)
-#     for j in range(4):
-#         pperfect[0+k]=popt[0]
-#         pperfect[1 + k] = popt[1]
-#         pperfect[2 + k] = popt[2]
-#         pperfect[3 + k] = popt[3]
-#     # plt.plot(t_track,best_fit)
-#     plt.plot(t_track,next_phi-best_fit)
-#     plt.show()
-#     next_phi=next_phi-best_fit
-# plt.plot(t_track,phi_original+np.sum(bestfits))
-# plt.plot(t_track,np.abs(hilbert(next_phi-best_fit)))
-# plt.show()
+    # degree=2
+    # pperfect=np.zeros(degree*4)
+    # bestfits=[]
+    # next_phi = phi_track - ascale * phi_original
+    # for k in range(degree):
+    # #     envelope= np.abs(hilbert(next_phi))
+    # #     poptenv, pwhatevs = curve_fit(gauss_fit, t_track, envelope, maxfev=40000)
+    # #     best_env = gauss_fit(t_track, *poptenv)
+    # #     plt.plot(t_track, best_env, label='best fit')
+    # #     plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # #     plt.show()
+    #     p0 = np.zeros(4)
+    #     p0[0]=max(next_phi)
+    #     p0[1]=(2*k+1)*prop_track.field
+    #     p0[2]= 0
+    #     p0[3]= 1
+    #     popt, pcov = curve_fit(phi_fit, t_track, (next_phi), p0=p0, maxfev=40000)
+    #     best_fit=phi_fit(t_track, *popt)
+    #     bestfits.append(best_fit)
+    #     for j in range(4):
+    #         pperfect[0+k]=popt[0]
+    #         pperfect[1 + k] = popt[1]
+    #         pperfect[2 + k] = popt[2]
+    #         pperfect[3 + k] = popt[3]
+    #     # plt.plot(t_track,best_fit)
+    #     plt.plot(t_track,next_phi-best_fit)
+    #     plt.show()
+    #     next_phi=next_phi-best_fit
+    # plt.plot(t_track,phi_original+np.sum(bestfits))
+    # plt.plot(t_track,np.abs(hilbert(next_phi-best_fit)))
+    # plt.show()
+
+    # popt, pcov = curve_fit(phi_fit, t_track, envelope, maxfev=20000)
+    # best_env = phi_fit(t_track, *popt)
+    # plt.plot(t_track, best_env, label='best fit')
+    # # plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
+    # plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+
+    popt, pcov = curve_fit(phi_fit, t_track, (phi_track), p0=p0, method='trf', maxfev=40000)
+    # popt, pcov = curve_fit(phi_fit, t_track, (phi_track), p0=p0, maxfev=40000)
+    plt.plot(t_track, (phi_fit(t_track, *popt)), label='best fit')
+    # plt.plot(t_track, (phi_fit(t_track, *popt)), label='best fit')
+
+    plt.plot(t_track, phi_track, label='$\\Phi_T(t)$')
+    # plt.plot(t_track, phi_original, label='$\\Phi_T(t)$')
+
+    plt.xlabel('Time [cycles]')
+    plt.ylabel('$\\Phi_T(t)$')
+    plt.yticks(np.arange(-0.75 * np.pi, 1 * np.pi, 0.25 * np.pi),
+               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1.25 * np.pi, .25 * np.pi)])
+
+    plt.legend()
+    plt.show()
+
+    # plt.plot(t_track, phi_original + phi_fit(t_track, *popt), label='best fit')
+    plt.plot(t_track, phi_original + phi_fit(t_track, *popt), label='initial parameters')
+    plt.plot(t_track, phi_track, label='original')
+    plt.plot(t_track, phi_original)
+    plt.legend()
+    plt.show()
+
+    phi_fitted = phi_fit(t_track, *popt)
+    cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor, degree)
+    np.save('./data/fitted/phi' + cutparameternames, phi_fitted)
+
+    k = 1
+    for j in range(len(p0)):
+        if j < int(len(p0) / 4):
+            print("value of field %s is %.6f of Phi prefactor" % (j, popt[j] / (prop_track.a * ascale * prop.F0)))
+        elif j < int(2 * len(p0) / 4):
+            print("value of omega %s is %.2f omega_0" % (j, popt[j] / prop.field))
+        elif j < int(3 * len(p0) / 4):
+            print("value of phase %s is %.2f *2pi" % (j, popt[j] / (2 * np.pi)))
+        else:
+            print("value of chirp %s is %.5e omega_0" % (j, popt[j] / (prop.field)))
+
+else:
+
+    envelope = np.abs(hilbert(phi_original - phi_track))
+    # envelope=hilbert(phi_track)
+    mean, std = norm.fit(envelope)
 
 
-# popt, pcov = curve_fit(phi_fit, t_track, envelope, maxfev=20000)
-# best_env = phi_fit(t_track, *popt)
-# plt.plot(t_track, best_env, label='best fit')
-# # plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
-# plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    def gauss_fit(time, prefactor, mean, std, prefactor_sin, pre2):
+        f = prefactor * np.exp(-(((time - mean) / std) ** 2)) * np.sin(pre2 * np.pi * (time) / cycles) ** 2
+        # f = (pre2)*np.sin(np.pi*prefactor_sin*time/cycles)**2
+        return f
 
-popt, pcov = curve_fit(phi_fit, t_track, (phi_track - phi_original), p0=p0, method='trf', maxfev=40000)
-# popt, pcov = curve_fit(phi_fit, t_track, (phi_track), p0=p0, maxfev=40000)
-plt.plot(t_track, (phi_original + phi_fit(t_track, *popt)), label='best fit')
-# plt.plot(t_track, (phi_fit(t_track, *popt)), label='best fit')
 
-plt.plot(t_track, phi_track, label='$\\Phi_T(t)$')
-# plt.plot(t_track, phi_original, label='$\\Phi_T(t)$')
+    point_times = []
+    point_envelope = []
+    jump = int(len(t_track) / cycles)
 
-plt.xlabel('Time [cycles]')
-plt.ylabel('$\\Phi_T(t)$')
-plt.yticks(np.arange(-0.75 * np.pi, 1 * np.pi, 0.25 * np.pi),
-           [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1.25 * np.pi, .25 * np.pi)])
+    for j in range(int(cycles)):
+        point_times.append(t_track[int(int(0.25 * jump + j * jump))])
+        point_envelope.append((phi_original - phi_track)[int(int(0.25 * jump + j * jump))])
+    plt.scatter(point_times, point_envelope)
+    plt.plot(t_track, phi_original - phi_track)
+    plt.show()
 
-plt.legend()
-plt.show()
+    # popt, pcov = curve_fit(gauss_fit, t_track[100:-100], envelope[100:-100], maxfev=40000)
+    popt, pcov = curve_fit(gauss_fit, point_times, point_envelope, method='trf', maxfev=40000)
+    best_env = gauss_fit(t_track, *popt)
+    plt.plot(t_track, best_env, label='best fit')
+    plt.plot(t_track, -best_env, label='best fit')
+    print(popt)
+    # plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
+    plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    plt.plot(t_track, phi_track, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # plt.plot(t_track, envelope-best_env, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # plt.plot(t_track, stretchsin, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
 
-# plt.plot(t_track, phi_original + phi_fit(t_track, *popt), label='best fit')
-plt.plot(t_track, phi_original + phi_fit(t_track, *popt), label='initial parameters')
-plt.plot(t_track, phi_track, label='original')
-plt.plot(t_track, phi_original)
-plt.legend()
-plt.show()
+    plt.show()
 
-phi_fitted = phi_original + phi_fit(t_track, *popt)
-cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
-    nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor, degree)
-np.save('./data/fitted/phi' + cutparameternames, phi_fitted)
+    env_func = interp1d(t_track, best_env, fill_value=0, bounds_error=False, kind='cubic')
 
-k = 1
-for j in range(len(p0)):
-    if j < int(len(p0) / 4):
-        print("value of field %s is %.6f of Phi prefactor" % (j, popt[j] / (prop_track.a * ascale * prop.F0)))
-    elif j < int(2 * len(p0) / 4):
-        print("value of omega %s is %.2f omega_0" % (j, popt[j] / prop.field))
-    elif j < int(3 * len(p0) / 4):
-        print("value of phase %s is %.2f *2pi" % (j, popt[j] / (2 * np.pi)))
-    else:
-        print("value of chirp %s is %.5e omega_0" % (j, popt[j] / (prop.field)))
 
-#
+    # env_func = interp1d(t_track, envelope, fill_value=0, bounds_error=False, kind='cubic')
+
+    # p0=np.zeros(3)
+    # p0[0]=np.amax(phi_track)
+    # p0[1]=prop_track.field
+    # p0=np.random.randint(np.pi,size=6)
+    # chirp = (phi_track-phi_original)/(best_env)
+    # chirp /= chirp.max()
+    # chirp = np.arcsin(chirp)
+    # for j in range(1, len(chirp)):
+    #     if chirp[j] - chirp[j - 1] > np.pi:
+    #         chirp[j:] = chirp[j:] - 2 * np.pi
+    #     if chirp[j] - chirp[j - 1] < -np.pi:
+    #         chirp[j:] = chirp[j:] + 2 * np.pi
+
+    # plt.plot(t_track,chirp)
+    # plt.show()
+
+    def phi_fit(current_time, *params):
+        f = len(params)
+        prefactors = []
+        omegas = []
+        phases = []
+        chirps = []
+        for j in range(f):
+            if j < int(f / 4):
+                # print(params[j])
+                prefactors.append(params[j])
+            elif j < int(2 * f / 4):
+                omegas.append(params[j])
+            elif j < int(3 * f / 4):
+                phases.append(params[j])
+            else:
+                chirps.append(params[j])
+        k = 0
+        current_time = current_time / prop_track.freq
+        for j in range(int(f / 4)):
+            # print('success')
+            k += prefactors[j] * np.sin((omegas[j] + chirps[j] * current_time) * current_time - phases[j])
+            # k += (prefactors[j]+chirps[j] * current_time) * np.sin((omegas[j]  * current_time - phases[j]))
+            # k += prefactors[j] * np.sin(omegas[j] * current_time - phases[j])
+            # k += prefactors[j] * np.sin((omegas[j]) * current_time - phases[j])* (np.sin((prop_track.field+chirps[j]*current_time) * current_time / (2 * cycles)))
+        phi = k * env_func(current_time * prop_track.freq)
+        # phi = k * np.sin(chirps[j]*np.pi*current_time*prop_track.freq/cycles)**2
+
+        return phi
+
+
+    p0 = np.zeros(degree * 4)
+    k = 1
+    for j in range(len(p0)):
+        if j < int(len(p0) / 4):
+            p0[j] = (np.pi / 2) / int(len(p0) / 4)
+            p0[-j] = k * prop_track.field
+        elif j < int(2 * len(p0) / 4):
+            if k == 1:
+                p0[j] = 0
+            p0[j] = k * prop_track.field
+            k += 2
+        else:
+            p0[j] = 0
+    # degree=2
+    # pperfect=np.zeros(degree*4)
+    # bestfits=[]
+    # next_phi = phi_track - ascale * phi_original
+    # for k in range(degree):
+    # #     envelope= np.abs(hilbert(next_phi))
+    # #     poptenv, pwhatevs = curve_fit(gauss_fit, t_track, envelope, maxfev=40000)
+    # #     best_env = gauss_fit(t_track, *poptenv)
+    # #     plt.plot(t_track, best_env, label='best fit')
+    # #     plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+    # #     plt.show()
+    #     p0 = np.zeros(4)
+    #     p0[0]=max(next_phi)
+    #     p0[1]=(2*k+1)*prop_track.field
+    #     p0[2]= 0
+    #     p0[3]= 1
+    #     popt, pcov = curve_fit(phi_fit, t_track, (next_phi), p0=p0, maxfev=40000)
+    #     best_fit=phi_fit(t_track, *popt)
+    #     bestfits.append(best_fit)
+    #     for j in range(4):
+    #         pperfect[0+k]=popt[0]
+    #         pperfect[1 + k] = popt[1]
+    #         pperfect[2 + k] = popt[2]
+    #         pperfect[3 + k] = popt[3]
+    #     # plt.plot(t_track,best_fit)
+    #     plt.plot(t_track,next_phi-best_fit)
+    #     plt.show()
+    #     next_phi=next_phi-best_fit
+    # plt.plot(t_track,phi_original+np.sum(bestfits))
+    # plt.plot(t_track,np.abs(hilbert(next_phi-best_fit)))
+    # plt.show()
+
+    # popt, pcov = curve_fit(phi_fit, t_track, envelope, maxfev=20000)
+    # best_env = phi_fit(t_track, *popt)
+    # plt.plot(t_track, best_env, label='best fit')
+    # # plt.plot(t_track, best_env+-0.2*(np.sin(np.pi*t_track/cycles)**2)*np.sin((5*prop.field*t_track)*t_track), label='best fit')
+    # plt.plot(t_track, envelope, label='$\\Phi_T(t)-\\Phi(t)$ envelope')
+
+    popt, pcov = curve_fit(phi_fit, t_track, (phi_original - phi_track), p0=p0, method='trf', maxfev=40000)
+    # popt, pcov = curve_fit(phi_fit, t_track, (phi_track), p0=p0, maxfev=40000)
+    plt.plot(t_track, (phi_original - phi_fit(t_track, *popt)), label='best fit')
+    # plt.plot(t_track, (phi_fit(t_track, *popt)), label='best fit')
+
+    plt.plot(t_track, phi_track, label='$\\Phi_T(t)$')
+    # plt.plot(t_track, phi_original, label='$\\Phi_T(t)$')
+
+    plt.xlabel('Time [cycles]')
+    plt.ylabel('$\\Phi_T(t)$')
+    plt.yticks(np.arange(-0.75 * np.pi, 1 * np.pi, 0.25 * np.pi),
+               [r"$" + format(r / np.pi, ".2g") + r"\pi$" for r in np.arange(-1 * np.pi, 1.25 * np.pi, .25 * np.pi)])
+
+    plt.legend()
+    plt.show()
+
+    plt.plot(t_track, phi_fit(t_track, *popt), label='best fit')
+    # plt.plot(t_track,  phi_fit(t_track, *popt), label='initial parameters')
+    plt.plot(t_track, phi_track, label='original')
+    # plt.plot(t_track, phi_original)
+    plt.legend()
+    plt.show()
+
+    phi_fitted = phi_fit(t_track, *popt)
+    cutparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude-%s-ascale-%s-scalefactor-%s-degree.npy' % (
+        nx, cycles, U, t, number, delta, field, F0, ascale, scalefactor, degree)
+    np.save('./data/fitted/phi' + cutparameternames, phi_fitted)
+
+    k = 1
+    for j in range(len(p0)):
+        if j < int(len(p0) / 4):
+            print("value of field %s is %.6f of Phi prefactor" % (
+            j, popt[j] * (popt[j + int(len(p0) / 4)]) / (prop.field * prop.F0)))
+        elif j < int(2 * len(p0) / 4):
+            print("value of omega %s is %.2f omega_0" % (j, popt[j] / prop.field))
+        elif j < int(3 * len(p0) / 4):
+            print("value of phase %s is %.2f *2pi" % (j, popt[j] / (2 * np.pi)))
+        else:
+            print("value of chirp %s is %.5e omega_0" % (j, popt[j] / (prop.field)))
 # for k in [50, 55, 60]:
 #     ascale = 1
 #     scalefactor = 1 / k
