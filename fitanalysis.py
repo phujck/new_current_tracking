@@ -134,7 +134,7 @@ def FT_count(N):
 params = {
     'axes.labelsize': 30,
     # 'legend.fontsize': 28,
-    'legend.fontsize': 23,
+    'legend.fontsize': 28,
     'xtick.labelsize': 22,
     'ytick.labelsize': 22,
     'figure.figsize': [2 * 3.375, 2 * 3.375],
@@ -153,7 +153,7 @@ ny = 0
 t = 0.52
 t1 = t
 t2 = 0.52
-U = 0 * t
+U = 1 * t
 U2 = 0 * t
 U_track = U
 U_track2 = U2
@@ -169,7 +169,7 @@ F0 = 10
 a = 4
 scalefactor = 1
 scalefactor2 = 1
-ascale = 1
+ascale = 10
 ascale2 = 1
 degree = 3
 """Turn this to True in order to load tracking files"""
@@ -244,8 +244,8 @@ gabor = 'fL'
 
 zeroparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
     nx, cycles, 0.0, t, number, delta, field, F0)
-zeroparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-    nx, cycles, 1 * t, t, number, delta, field, F0)
+# zeroparameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+#     nx, cycles, 1 * t, t, number, delta, field, F0)
 ref_J = np.load('./data/original/Jfield' + zeroparameternames) / scalefactor
 times = np.linspace(0.0, cycles, len(ref_J))
 
@@ -274,13 +274,14 @@ w, spec = har_spec.spectrum_welch(exact, delta1)
 w *= 2. * np.pi / prop.field
 plt.semilogy(w, spec, linestyle='dashed', label='Target', color='black')
 
+axes = plt.gca()
+axes.set_xlim([0, max_harm])
+axes.set_ylim([10 ** (-min_spec), spec.max()])
+
 exact = np.gradient(J_field, delta)
 w, spec = har_spec.spectrum_welch(exact, delta1)
 w *= 2. * np.pi / prop.field
 plt.semilogy(w, spec, label='$J(t)$')
-axes = plt.gca()
-axes.set_xlim([0, max_harm])
-axes.set_ylim([10 ** (-min_spec), spec.max()])
 
 xlines = [2 * i - 1 for i in range(1, 6)]
 
