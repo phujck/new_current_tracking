@@ -99,7 +99,7 @@ cycles = 10
 """Timestep used"""
 delta = 0.01
 
-"""these lists get popuproped with the appropriate expectations"""
+"""these lists get populated with the appropriate expectations"""
 neighbour = []
 energy=[]
 doublon_energy=[]
@@ -201,27 +201,27 @@ np.save('./data/original/double' + parameternames, D)
 # np.save('./data/original/double'+parameternames,D)
 
 """rank testing"""
-# for k in tqdm(range(N)):
-#     # definition.progress(N,k)
-#     newtime = k * delta
-#     if k == 0:
-#         # psi_temp = evolve.RK4_max(prop, h, delta, psi_temp, time)
-#         psi_temp = evolve.RK4_constant(prop, h, delta, 120, psi_temp, time)
-#         J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 120, time)))
+for k in tqdm(range(N)):
+    # definition.progress(N,k)
+    newtime = k * delta
+    if k == 0:
+        # psi_temp = evolve.RK4_max(prop, h, delta, psi_temp, time)
+        psi_temp = evolve.RK4_constant(prop, h, delta, 120, psi_temp, time)
+        J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 120, time)))
+
+
+    else:
+        psi_temp = evolve.RK4_constant(prop, h, delta, 0, psi_temp, time)
+        J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 0, time)))
+#         # eJ.append(har_spec.J_expectation(lat, h, psi_temp, k*delta, time))
+#         # neighbour = har_spec.nearest_neighbour(lat, psi_temp)
 #
-#
-#     else:
-#         psi_temp = evolve.RK4_constant(prop, h, delta, 0, psi_temp, time)
-#         J_field.append(har_spec.J_expectation_track(prop, h, psi_temp, har_spec.phi(prop, 0, time)))
-# #         # eJ.append(har_spec.J_expectation(lat, h, psi_temp, k*delta, time))
-# #         # neighbour = har_spec.nearest_neighbour(lat, psi_temp)
-# #
-# #         neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
-# #         # J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
-# #         phi_original.append(har_spec.phi(prop, newtime, time))
-# #         two_body.append(har_spec.two_body_old(prop, psi_temp))
-# #         D.append(observable.DHP(prop, psi_temp))
-# np.save('./data/original/ranktestcurrentshorttime' + parameternames, J_field)
+#         neighbour.append(har_spec.nearest_neighbour_new(prop, h, psi_temp))
+#         # J_field.append(har_spec.J_expectation(prop, h, psi_temp, newtime, time))
+#         phi_original.append(har_spec.phi(prop, newtime, time))
+#         two_body.append(har_spec.two_body_old(prop, psi_temp))
+#         D.append(observable.DHP(prop, psi_temp))
+np.save('./data/original/ranktestcurrentshorttime' + parameternames, J_field)
 
 print("threads =%s" % threads)
 stop = timeit.default_timer()

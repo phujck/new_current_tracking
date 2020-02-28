@@ -140,7 +140,8 @@ params = {
     'xtick.labelsize': 22,
     'ytick.labelsize': 22,
     'figure.figsize': [2 * 3.375, 2 * 3.375],
-    'text.usetex': True
+    'text.usetex': True,
+    'figure.figsize': (16, 12)
 }
 
 plt.rcParams.update(params)
@@ -429,12 +430,14 @@ times2 = np.linspace(0.0, cycles, len(J_field2))
 
 plt.subplot(312)
 plt.plot(times, np.abs(neighbour), label='original')
-plt.plot(t_track, np.abs(neighbour_track), linestyle='dashed', label='tracked')
+if Tracking:
+    plt.plot(t_track, np.abs(neighbour_track), linestyle='dashed', label='tracked')
 plt.ylabel('$R(\psi)$')
 
 plt.subplot(313)
 plt.plot(times, np.abs(two_body), label='original')
-plt.plot(t_track, np.abs(two_body_track), linestyle='dashed')
+if Tracking:
+    plt.plot(t_track, np.abs(two_body_track), linestyle='dashed')
 plt.ylabel('$C(\psi)$')
 plt.xlabel('Time [cycles]')
 
@@ -462,11 +465,12 @@ else:
 w *= 2. * np.pi / prop.field
 w2 *= 2. * np.pi / prop.field
 plot_spectra([prop.U, prop2.U], w, spec, min_spec, max_harm)
+
 dimensionalitysite = []
 dimensionalityelectron = []
 dimensionalityU = []
 """Calculate ranks"""
-# U=1*t
+U = 1 * t
 # for k in [2,3,4,5]:
 #     sites=int(2*k)
 #     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
@@ -505,122 +509,130 @@ dimensionalityU = []
 # plt.xlabel('Site number')
 # plt.ylabel("System rank")
 # plt.show()
-#
-# for k in [2,3,4,5]:
-#     sites=10
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentvarynumber' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f=0
-#     for j in range(0,len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f+=1
-#         else:
-#             break
-#     dimensionalityelectron.append(f)
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$n_\\uparrow=n_\\downarrow=$%s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-#
-# plt.show()
-#
-# plt.plot([2,3,4,5],dimensionalityelectron)
-# plt.xlabel('$n_\\uparrow$')
-# plt.title('effective system rank varying electron number for 10 sites and $\\frac{U}{t_0}=1$')
-# plt.ylabel("System rank")
-# plt.show()
-#
-# for k in [0.1,0.5,1,2,4,8,10,12,14,16,18]:
-#     U=k*t
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         nx, cycles, U, t, number, delta, field, F0)
-#     # current = np.load('./data/original/ranktestcurrent' + parameternames)
-#     current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.005:
-#             f += 1
-#         else:
-#             break
-#     dimensionalityU.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-',label='$\\frac{U}{t_0}=$ %s' % k)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on system parameters at 6 sites half filling')
-# plt.xlim([0,40])
-# plt.ylim([10**(-4),1.1])
-# plt.show()
-#
-#
-# plt.plot([0.1,0.5,1,2,4,8,10,12,14,16,18],dimensionalityU)
-# plt.xlabel('$\\frac{U}{t_0}$')
-# plt.ylabel("System rank")
-# plt.title('effective system rank at 6 sites half filling varying  $\\frac{U}{t_0}$')
-# plt.show()
+plt.subplot(211)
 
+for k in [2, 3, 4, 5]:
+    sites = 10
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+        sites, cycles, U, t, k, delta, field, F0)
+    current = np.load('./data/original/ranktestcurrentvarynumber' + parameternames)
+    # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
 
-# U = 1 * t
-# cycles = 0.2
-# for k in [2, 3, 4, 5, 6, 7,8]:
-#     sites = int(2 * k)
-#     parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
-#         sites, cycles, U, t, k, delta, field, F0)
-#     current = np.load('./data/original/ranktestcurrentshorttime' + parameternames)
-#     # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
-#
-#     alpha = current.size // 2
-#
-#     H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
-#
-#     singular_vals = linalg.svd(H_1, compute_uv=False)
-#     f = 0
-#     for j in range(0, len(singular_vals / singular_vals.max())):
-#         if singular_vals[j] / singular_vals.max() > 0.01:
-#             f += 1
-#         else:
-#             break
-#     dimensionalitysite.append(f)
-#
-#     plt.semilogy(singular_vals / singular_vals.max(), '*-', label='%s sites' % sites)
-#     # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
-#
-# plt.legend()
-# plt.xlabel("number of singular value")
-# plt.ylabel("singular value")
-# plt.title('Rank dependence on site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlim([0, 40])
-# plt.ylim([10 ** (-4), 1.1])
-# plt.show()
-#
+    alpha = current.size // 2
+
+    H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
+
+    singular_vals = linalg.svd(H_1, compute_uv=False)
+    f = 0
+    for j in range(0, len(singular_vals / singular_vals.max())):
+        if singular_vals[j] / singular_vals.max() > 0.01:
+            f += 1
+        else:
+            break
+    dimensionalityelectron.append(f)
+    plt.semilogy(singular_vals / singular_vals.max(), '*-', label='$n_\\uparrow=n_\\downarrow=$%s' % k)
+plt.plot(np.ones(len(singular_vals)) * 0.01, label='cutoff', linestyle='--', color='black')
+# plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
+
+plt.legend()
+plt.xlabel("singular value  index ")
+plt.ylabel("$\\frac{S_n}{S_{\\rm max}}$")
+plt.xlim([0, 65])
+plt.ylim([10 ** (-4), 1.1])
+
+plt.subplot(212)
+plt.plot([2, 3, 4, 5], dimensionalityelectron)
+plt.xlabel('$n_\\uparrow$')
+plt.ylabel("Effective System Rank")
+
+plt.show()
+
+plt.subplot(211)
+for k in [1, 2, 4, 8, 10, 12, 14, 16, 18]:
+    U = k * t
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+        nx, cycles, U, t, number, delta, field, F0)
+    # current = np.load('./data/original/ranktestcurrent' + parameternames)
+    current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
+
+    alpha = current.size // 2
+
+    H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
+
+    singular_vals = linalg.svd(H_1, compute_uv=False)
+    f = 0
+    for j in range(0, len(singular_vals / singular_vals.max())):
+        if singular_vals[j] / singular_vals.max() > 0.007:
+            f += 1
+        else:
+            break
+    dimensionalityU.append(f)
+    if k == 1:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-', label='$\\frac{U}{t_0}=$ %s' % k)
+    elif k == 18:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-', label='$\\frac{U}{t_0}=$ %s' % k)
+    else:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-')
+    # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
+plt.plot(np.ones(len(singular_vals)) * 0.007, label='cutoff', linestyle='--', color='black')
+plt.legend()
+plt.xlabel("singular value  index ")
+plt.ylabel("$\\frac{S_n}{S_{\\rm max}}$")
+plt.xlim([0, 15])
+plt.ylim([10 ** (-4), 1.1])
+
+plt.subplot(212)
+plt.plot([1, 2, 4, 8, 10, 12, 14, 16, 18], dimensionalityU)
+plt.xlabel('$\\frac{U}{t_0}$')
+plt.ylabel("Effective System Rank")
+plt.show()
+
+U = 1 * t
+cycles = 0.2
+plt.subplot(211)
+for k in [2, 3, 4, 5, 6, 7, 8]:
+    sites = int(2 * k)
+    parameternames = '-%s-nsites-%s-cycles-%s-U-%s-t-%s-n-%s-delta-%s-field-%s-amplitude.npy' % (
+        sites, cycles, U, t, k, delta, field, F0)
+    current = np.load('./data/original/ranktestcurrentshorttime' + parameternames)
+    # current = np.load('./data/original/ranktestcurrentonespecies' + parameternames)
+
+    alpha = current.size // 2
+
+    H_1 = linalg.hankel(current[1:(alpha + 1)], current[alpha:])
+
+    singular_vals = linalg.svd(H_1, compute_uv=False)
+    f = 0
+    for j in range(0, len(singular_vals / singular_vals.max())):
+        if singular_vals[j] / singular_vals.max() > 0.01:
+            f += 1
+        else:
+            break
+    dimensionalitysite.append(f)
+    if k == 2:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-', label='%s sites' % sites)
+    elif k == 8:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-', label='%s sites' % sites)
+    else:
+        plt.semilogy(singular_vals / singular_vals.max(), '*-')
+
+    # plt.plot(singular_vals / singular_vals.max(), '*-',label='%s sites' % k)
+plt.plot(np.ones(len(singular_vals)) * 0.01, label='cutoff', linestyle='--', color='black')
+
+plt.legend()
+plt.xlabel("singular value  index ")
+plt.ylabel("$\\frac{S_n}{S_{\\rm max}}$")
+plt.xlim([0, 15])
+plt.ylim([10 ** (-4), 1.1])
+
+print("site dimensionality is %s" % (len(dimensionalitysite)))
 # fit = np.polyfit([4, 6, 8, 10, 12, 14,16], dimensionalitysite, deg=1)
 # linearfit = np.array([4, 6, 8, 10, 12, 14,16])
-# # plt.plot([4, 6, 8, 10, 12, 14,16], fit[0] * linearfit + fit[1])
-# plt.plot([4, 6, 8, 10, 12, 14,16], dimensionalitysite)
-#
-# plt.title('effective system rank varying site number at half filling for $\\frac{U}{t_0}=1$')
-# plt.xlabel('Site number')
-# plt.ylabel("System rank")
-# plt.show()
+# plt.plot([4, 6, 8, 10, 12, 14,16], fit[0] * linearfit + fit[1])
+
+plt.subplot(212)
+plt.plot([4, 6, 8, 10, 12, 14, 16], dimensionalitysite)
+
+plt.xlabel('Site number')
+plt.ylabel("Effective System Rank")
+plt.show()
